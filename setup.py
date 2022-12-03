@@ -7,7 +7,7 @@ __version__ = "0.0.1"
 
 REPO_NAME = "Forecasting-Backorders-In-Inventory"
 AUTHOR_USER_NAME = "anilans029"
-SRC_REPO = "Backorder"
+SRC_REPO = "backorder"
 AUTHOR_EMAIL = "anilsai029@gmail.com"
 
 setuptools.setup(

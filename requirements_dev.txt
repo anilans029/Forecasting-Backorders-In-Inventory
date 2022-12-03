@@ -3,6 +3,9 @@ pandas
 numpy
 matplotlib
 seaborn
+xgboost
+catboost
+from-root
 
 
 # dev requirements -
