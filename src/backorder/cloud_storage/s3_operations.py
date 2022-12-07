@@ -87,9 +87,12 @@ class S3Operations:
             objects= []
             if bucket_name in buckets:
                 response = self.s3_client.list_objects(Bucket = bucket_name)
-                for content in response.get('Contents'):
-                    objects.append(content.get("Key"))
-                return objects
+                if response.get("Contents")!= None:
+                    for content in response.get('Contents'):
+                        objects.append(content.get("Key"))
+                    return objects
+                else:
+                    return None
             else:
                 logging.info(BackorderException(e,sys))
                 raise Exception('No such bucket exists in s3')
