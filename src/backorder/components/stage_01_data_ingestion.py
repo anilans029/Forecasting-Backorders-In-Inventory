@@ -56,7 +56,9 @@ class DataIngestion:
                 return datetime.strptime(meta_data_dict["recently_used_batch_date"],"%d-%m-%Y")
 
             else:
-                logging.info("The s3 bucket: {artifacts_bucket_name} doesn't contain any objects")
+                logging.info(f"The s3 bucket: {artifacts_bucket_name} doesn't contain any objects")
+                return None
+                
 
         except Exception as e:
             logging.info(BackorderException(e, sys))
@@ -86,7 +88,7 @@ class DataIngestion:
                                                     self.data_ingestion_config.source_data_file_name))
             create_directories([os.path.dirname(download_file_path)])
             object_path = f"{date}/{self.data_ingestion_config.source_data_file_name}"
-
+            logging.info(f"started downloading object: {object_path} from {self.data_ingestion_config.aws_data_source_bucket_name} ")
             self.s3_operations.download_file_from_s3(bucket_name= self.data_ingestion_config.aws_data_source_bucket_name,
                                                     object_path=object_path,
                                                     download_file_path=str(download_file_path))
@@ -137,8 +139,9 @@ class DataIngestion:
                 merging_df.to_csv(self.data_ingestion_config.feature_store_merged_filePath)
                 return merging_df
             else:
-                merging_df = pd.concat([merging_df,old_data_df])
                 logging.info(f"saving the merged df as csv file at: {[ self.data_ingestion_config.feature_store_merged_filePath ]}")
+                merged_data_dir = os.path.dirname(self.data_ingestion_config.feature_store_merged_filePath)
+                create_directories([merged_data_dir])
                 merging_df.to_csv(self.data_ingestion_config.feature_store_merged_filePath)
                 return merging_df
         except Exception as e:
@@ -173,42 +176,50 @@ class DataIngestion:
         try:
             logging.info("initiating the data ingestion")
             recent_used_batch_date = self.get_updated_timestamp_and_sync_from_s3()
-            recent_batch_date_from_source, batch_dates = self.get_latest_batch_date_from_source()
-            diff_date = recent_batch_date_from_source-recent_used_batch_date
-            if diff_date.days>=1:
-                logging.info("new data availabe in the data_source....lets download it")
-                logging.info(f"getting the batch dates that are greater than recent_used_batch_date: {recent_used_batch_date}")
-                new_batch_dates = [batch_date for batch_date in batch_dates if recent_used_batch_date < batch_date]
-                downloaded_batches = self.download_all_new_data_from_source_bucket(new_batch_dates)
+            if recent_used_batch_date!= None:
+                recent_batch_date_from_source, batch_dates = self.get_latest_batch_date_from_source()
+                diff_date = recent_batch_date_from_source-recent_used_batch_date
+                if diff_date.days>=1:
+                    logging.info("new data availabe in the data_source....lets download it")
+                    logging.info(f"getting the batch dates that are greater than recent_used_batch_date: {recent_used_batch_date}")
+                    new_batch_dates = [batch_date for batch_date in batch_dates if recent_used_batch_date < batch_date]
+                    downloaded_batches = self.download_all_new_data_from_source_bucket(new_batch_dates)
                 
-                logging.info(f"started converting the new raw json data into csv data by merging all new files")
-                merged_df = self.convert_json_files_to_csv()
-                
-                logging.info(f"loading the merged csv file and splitting the data into train and test datasets")
-                self.split_data_to_train_test_sets(dataframe= merged_df)
-
-                logging.info(f"write the meta data into yaml file")
-                self.write_meta_data(downloaded_batches)
-                data_ingestion_artifact = DataIngestionArtifact(
-                                                    feature_file_path= self.data_ingestion_config.feature_store_merged_filePath,
-                                                    test_file_path= self.data_ingestion_config.test_file_path,
-                                                    train_file_path= self.data_ingestion_config.train_file_path
-                                            )
-                return data_ingestion_artifact
-
+                else:
+                    logging.info("no new data available in the data-source. so skipping the downloading fucntion")
+                    old_merged_filepath= self.data_ingestion_config.feature_store_merged_filePath
+                    if os.path.exists(old_merged_filepath):
+                        old_data_df = pd.read_csv(old_merged_filepath)
+                    logging.info(f"loading the merged csv file and splitting the data into train and test datasets")
+                    self.split_data_to_train_test_sets(dataframe= old_data_df)
+                    data_ingestion_artifact = DataIngestionArtifact(
+                                                        feature_file_path= self.data_ingestion_config.feature_store_merged_filePath,
+                                                        test_file_path= self.data_ingestion_config.test_file_path,
+                                                        train_file_path= self.data_ingestion_config.train_file_path
+                                                )
+                    return data_ingestion_artifact
             else:
-                logging.info("no new data available in the data-source. so skipping the downloading fucntion")
-                old_merged_filepath= self.data_ingestion_config.feature_store_merged_filePath
-                if os.path.exists(old_merged_filepath):
-                    old_data_df = pd.read_csv(old_merged_filepath)
-                logging.info(f"loading the merged csv file and splitting the data into train and test datasets")
-                self.split_data_to_train_test_sets(dataframe= old_data_df)
-                data_ingestion_artifact = DataIngestionArtifact(
-                                                    feature_file_path= self.data_ingestion_config.feature_store_merged_filePath,
-                                                    test_file_path= self.data_ingestion_config.test_file_path,
-                                                    train_file_path= self.data_ingestion_config.train_file_path
-                                            )
-                return data_ingestion_artifact
+                recent_batch_date_from_source, batch_dates = self.get_latest_batch_date_from_source()
+                logging.info("new data availabe in the data_source....lets download it")
+                downloaded_batches = self.download_all_new_data_from_source_bucket(batch_dates)
+                logging.info(f"succefully downloaded all the new data file.")
+                
+            logging.info(f"started converting the new raw json data into csv data by merging all new files")
+            merged_df = self.convert_json_files_to_csv()
+            
+            logging.info(f"loading the merged csv file and splitting the data into train and test datasets")
+            self.split_data_to_train_test_sets(dataframe= merged_df)
+
+            logging.info(f"write the meta data into yaml file")
+            self.write_meta_data(downloaded_batches)
+            data_ingestion_artifact = DataIngestionArtifact(
+                                                feature_file_path= self.data_ingestion_config.feature_store_merged_filePath,
+                                                test_file_path= self.data_ingestion_config.test_file_path,
+                                                train_file_path= self.data_ingestion_config.train_file_path
+                                        )
+            return data_ingestion_artifact
+
+            
         except Exception as e:
             logging.info(BackorderException(e, sys))
             raise BackorderException(e,sys)
