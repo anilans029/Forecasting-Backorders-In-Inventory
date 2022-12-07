@@ -6,7 +6,10 @@ seaborn
 xgboost
 catboost
 from-root
-
+boto3
+dataclasses
+PyYAML
+dill==0.3.6
 
 # dev requirements -
 pytest==7.1.3
@@ -14,4 +17,5 @@ tox==3.25.1
 black==22.8.0
 flake8==5.0.4
 mypy==0.971
+
 -e .

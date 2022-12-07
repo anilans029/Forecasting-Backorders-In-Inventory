@@ -6,11 +6,14 @@ import boto3
 class S3Operations:
     
     def __init__(self):
-        self.s3_client = boto3.client("s3",
-                        aws_secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY"),
-                        aws_access_key_id = os.getenv("AWS_ACCESS_KEY_ID")
-                         )
-
+        try:
+        
+            self.s3_client = boto3.client("s3",
+                            aws_secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY"),
+                            aws_access_key_id = os.getenv("AWS_ACCESS_KEY_ID")
+                            )
+        except Exception as e:
+            logging.info(BackorderException(e,sys))
     def sync_s3_to_folder(self, folder, aws_bucket_url):
         try:
             command = f"aws s3 sync {aws_bucket_url} {folder}"
@@ -68,7 +71,7 @@ class S3Operations:
             return buckets
         
         except Exception as e:
-            logging.info(BackorderExceptioin(e,sys))
+            logging.info(BackorderException(e,sys))
                 
     def list_all_objects_in_s3Bucket(self, bucket_name):
         try:

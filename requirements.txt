@@ -6,3 +6,7 @@ seaborn
 xgboost
 catboost
 from-root
+boto3
+dataclasses
+PyYAML
+dill==0.3.6

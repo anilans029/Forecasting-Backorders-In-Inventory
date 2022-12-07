@@ -9,6 +9,6 @@ LOG_DIR = os.path.join(from_root(),"logs")
 os.makedirs(LOG_DIR, exist_ok= True)
 LOG_FILE_PATH = os.path.join(from_root(),LOG_DIR,LOG_FILE)
 
-LOG_FORMAT = "[%(asctime)s]- %(lineno)d -  %(name)s - %(levelname)s => %(message)s"
+LOG_FORMAT = "[%(asctime)s]- %(module)s - %(lineno)d -  %(name)s - %(levelname)s => %(message)s"
 
 logging.basicConfig(filename=LOG_FILE_PATH, filemode="w",level= logging.INFO, format= LOG_FORMAT)
