@@ -133,3 +133,5 @@ data_source/*
 notebook/Forecasting_backorders (2).ipynb
 backorders_data.zip
 backorders_data.csv
+
+artifact/*
