@@ -29,8 +29,12 @@ def read_yaml(filepath: Path):
     """
     try:
         with open(filepath, "r") as yaml_file:
-            yaml_content = yaml.safe_load(yaml_file)
-            return yaml_content
+            if os.path.exists(filepath):
+                logging.info(f"reading the yaml file present at : {filepath}")
+                yaml_content = yaml.safe_load(yaml_file)
+                return yaml_content
+            else:
+                logging.info('yamll file doesnt exist at : {filepath}')
     except Exception as e:
         raise e
 

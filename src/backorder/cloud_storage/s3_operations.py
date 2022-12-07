@@ -14,6 +14,8 @@ class S3Operations:
                             )
         except Exception as e:
             logging.info(BackorderException(e,sys))
+            raise BackorderException(e,sys)
+            
     def sync_s3_to_folder(self, folder, aws_bucket_url):
         try:
             command = f"aws s3 sync {aws_bucket_url} {folder}"
@@ -22,7 +24,8 @@ class S3Operations:
 
         except Exception as e:
             logging.info(BackorderException(e,sys))
-            
+            raise BackorderException(e,sys)
+
     def sync_folder_to_s3(self, folder, aws_bucket_url):
         try:
             command = f"aws s3 sync {folder} {aws_bucket_url}"
@@ -31,7 +34,8 @@ class S3Operations:
 
         except Exception as e:
             logging.info(BackorderException(e,sys))
-    
+            raise BackorderException(e,sys)
+
     def create_s3_bucket(self, bucket_name: str):
         try:
             response = self.s3_client.create_bucket(Bucket= bucket_name,
@@ -41,6 +45,7 @@ class S3Operations:
 
         except Exception as e:
             logging.info(BackorderException(e,sys))
+            raise BackorderException(e,sys)
 
     def upload_file_to_s3(self,src_path, bucket_name, object_destination_path):
         try:
@@ -50,6 +55,7 @@ class S3Operations:
 
         except Exception as e:
             logging.info(BackorderException(e, sys))
+            raise BackorderException(e,sys)
 
     def download_file_from_s3(self,bucket_name,object_path,download_file_path):
         try:
@@ -61,6 +67,7 @@ class S3Operations:
                                     )
         except Exception as e:
             logging.info(BackorderException(e, sys))
+            raise BackorderException(e,sys)
 
     def list_all_buckets_in_s3(self):
         try:
@@ -72,7 +79,8 @@ class S3Operations:
         
         except Exception as e:
             logging.info(BackorderException(e,sys))
-                
+            raise BackorderException(e,sys)
+
     def list_all_objects_in_s3Bucket(self, bucket_name):
         try:
             buckets = self.list_all_buckets_in_s3()
@@ -83,11 +91,12 @@ class S3Operations:
                     objects.append(content.get("Key"))
                 return objects
             else:
+                logging.info(BackorderException(e,sys))
                 raise Exception('No such bucket exists in s3')
 
         except Exception as e:
             logging.info(BackorderException(e,sys))
-        
+            raise BackorderException(e,sys)
 
 
 

@@ -14,5 +14,6 @@ class DataIngestionConfig:
     test_file_path: Path
     test_split_ratio: float
     failed_data_ingestion_dir: Path
-    meta_data_file_name: str
+    meta_data_file_path: Path
     data_ingestion_dir_name: str
+    source_data_file_name: str
