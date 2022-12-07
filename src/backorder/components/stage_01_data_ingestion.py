@@ -174,7 +174,7 @@ class DataIngestion:
 
     def initiate_data_ingestion(self)-> DataIngestionArtifact:
         try:
-            logging.info("initiating the data ingestion")
+            logging.info(f"{'*'*10} initiating the data ingestion {'*'*10}\n")
             recent_used_batch_date = self.get_updated_timestamp_and_sync_from_s3()
             if recent_used_batch_date!= None:
                 recent_batch_date_from_source, batch_dates = self.get_latest_batch_date_from_source()
@@ -197,6 +197,7 @@ class DataIngestion:
                                                         test_file_path= self.data_ingestion_config.test_file_path,
                                                         train_file_path= self.data_ingestion_config.train_file_path
                                                 )
+                    logging.info(f"Data_ingestion_artifacts: { data_ingestion_artifact }")
                     return data_ingestion_artifact
             else:
                 recent_batch_date_from_source, batch_dates = self.get_latest_batch_date_from_source()
@@ -217,6 +218,8 @@ class DataIngestion:
                                                 test_file_path= self.data_ingestion_config.test_file_path,
                                                 train_file_path= self.data_ingestion_config.train_file_path
                                         )
+            logging.info(f"Data_ingestion_artifacts: { data_ingestion_artifact }")
+            logging.info(f"{'*'*10} data ingestion completed {'*'*10}\n\n\n")
             return data_ingestion_artifact
 
             
