@@ -136,13 +136,17 @@ class DataIngestion:
                 old_data_df = pd.read_csv(old_merged_filepath)
                 merging_df = pd.concat([merging_df,old_data_df])
                 logging.info(f"saving the merged df as csv file at: {[ self.data_ingestion_config.feature_store_merged_filePath ]}")
-                merging_df.to_csv(self.data_ingestion_config.feature_store_merged_filePath)
+                logging.info(f"Dropping the sku column since it is not useful for model")
+                merging_df.drop(columns=["sku"],inplace= True)
+                merging_df.to_csv(self.data_ingestion_config.feature_store_merged_filePath,index=False)
                 return merging_df
             else:
                 logging.info(f"saving the merged df as csv file at: {[ self.data_ingestion_config.feature_store_merged_filePath ]}")
                 merged_data_dir = os.path.dirname(self.data_ingestion_config.feature_store_merged_filePath)
                 create_directories([merged_data_dir])
-                merging_df.to_csv(self.data_ingestion_config.feature_store_merged_filePath)
+                logging.info(f"Dropping the sku column since it is not useful for model")
+                merging_df.drop(columns=["sku"],inplace= True)
+                merging_df.to_csv(self.data_ingestion_config.feature_store_merged_filePath,index=False)
                 return merging_df
         except Exception as e:
             logging.info(BackorderException(e, sys))
@@ -155,8 +159,8 @@ class DataIngestion:
 
             create_directories([self.data_ingestion_config.ingested_data_dir])
             logging.info(f"saving the train and test files at: {self.data_ingestion_config.ingested_data_dir}")
-            train_set.to_csv(self.data_ingestion_config.train_file_path)
-            test_set.to_csv(self.data_ingestion_config.test_file_path)
+            train_set.to_csv(self.data_ingestion_config.train_file_path,index=False)
+            test_set.to_csv(self.data_ingestion_config.test_file_path,index=False)
 
         except Exception as e:
             logging.info(BackorderException(e, sys))
