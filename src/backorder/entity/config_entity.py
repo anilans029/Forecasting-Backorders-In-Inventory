@@ -17,3 +17,16 @@ class DataIngestionConfig:
     meta_data_file_path: Path
     data_ingestion_dir_name: str
     source_data_file_name: str
+
+@dataclass(frozen=True)
+class DataValidationConfig:
+
+    data_validation_artifact_dir: Path
+    valid_data_dir: Path
+    invalid_data_dir: Path
+    valid_train_file_path: Path
+    invalid_train_file_path: Path
+    valid_test_file_path: Path
+    invalid_test_file_path: Path
+    ks_2_samp_test_threshold: float
+    drift_report_file_path: Path
