@@ -1,4 +1,4 @@
-from backorder.entity import DataIngestionConfig
+from backorder.entity import DataIngestionConfig, DataValidationConfig
 from backorder.exception import BackorderException
 from backorder.logger import logging
 import sys,os
@@ -52,3 +52,34 @@ class TrainingConfigurationManager:
             
         except Exception as e:
             logging.info(BackorderException(e, sys))
+
+    def get_data_validatin_config(self):
+
+        try:
+            data_validation_artifact_dir = Path(os.path.join(self.artifact_dir, DATA_VALIDATION_ARTIFACT_DIR_NAME))
+            valid_data_dir = Path(os.path.join(data_validation_artifact_dir,DATA_VALIDATION_VALID_DATA_DIR_NAME))
+            invalid_data_dir = Path(os.path.join(data_validation_artifact_dir, DATA_VALIDATION_INVALID_DATA_DIR_NAME))
+            valid_train_file_path= Path(os.path.join(valid_data_dir,DATA_VALIDATION_VALID_TRAIN_FILE_NAME))
+            invalid_train_file_path = Path(os.path.join(invalid_data_dir,DATA_VALIDATION_INVALID_TRAIN_FILE_NAME))
+            valid_test_file_path = Path(os.path.join(valid_data_dir, DATA_VALIDATION_VALID_TEST_FILE_NAME))
+            invalid_test_file_path = Path(os.path.join(invalid_data_dir, DATA_VALIDATION_INVALID_TEST_FILE_NAME))
+            drift_report_file_path = Path(os.path.join(data_validation_artifact_dir,
+                                                            DATA_VALIDATION_DRIFT_REPORT_DIR_NAME,
+                                                            DATA_VALIDATION_DRIFT_REPORT_FILE_NAME))
+
+            data_validation_config = DataValidationConfig(
+                                            data_validation_artifact_dir= data_validation_artifact_dir,
+                                            drift_report_file_path= drift_report_file_path,
+                                            invalid_data_dir=invalid_data_dir ,
+                                            invalid_test_file_path=invalid_test_file_path,
+                                            invalid_train_file_path=invalid_train_file_path,
+                                            ks_2_samp_test_threshold= DATA_VALIDATION_KS_2SAMP_TEST_THRESHOLD,
+                                            valid_data_dir=valid_data_dir,
+                                            valid_test_file_path=valid_test_file_path,
+                                            valid_train_file_path=valid_train_file_path
+            )
+            return data_validation_config
+
+        except Exception as e:
+            logging.info(BackorderException(e,sys))
+            raise(BackorderException(e,sys))
