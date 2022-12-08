@@ -36,7 +36,8 @@ def read_yaml(filepath: Path):
             else:
                 logging.info('yamll file doesnt exist at : {filepath}')
     except Exception as e:
-        raise e
+        logging.info(BackorderException(e,sys))
+        raise BackorderException(e,sys)
 
 
 def write_yaml(file_path:Path, content: dict):

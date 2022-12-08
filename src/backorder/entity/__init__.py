@@ -1,1 +1,1 @@
-from backorder.entity.config_entity import DataIngestionConfig
+from backorder.entity.config_entity import DataIngestionConfig, DataValidationConfig

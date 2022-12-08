@@ -1,31 +1,55 @@
+total_no_of_columns: 22
+total_numerical_columns: 15
+total_categorical_columns: 7
 
-Numerical_features:
-  - forecast_3_month: float64
-  - forecast_6_month: float64
-  - forecast_9_month: float64
-  - in_transit_qty: float64
-  - lead_time: float64
-  - local_bo_qty: float64
-  - min_bank: float64
-  - national_inv: float64
-  - perf_12_month_avg: float64
-  - perf_6_month_avg: float64
-  - pieces_past_due: float64
-  - sales_1_month: float64
-  - sales_3_month: float64
-  - sales_6_month: float64
-  - sales_9_month: float64
+All_columns:
+  - 'national_inv'
+  - 'lead_time'
+  - 'in_transit_qty'
+  - 'forecast_3_month'
+  - 'forecast_6_month'
+  - 'forecast_9_month'
+  - 'sales_1_month'
+  - 'sales_3_month'
+  - 'sales_6_month'
+  - 'sales_9_month'
+  - 'min_bank'
+  - 'potential_issue'
+  - 'pieces_past_due'
+  - 'perf_6_month_avg'
+  - 'perf_12_month_avg'
+  - 'local_bo_qty'
+  - 'deck_risk'
+  - 'oe_constraint'
+  - 'ppap_risk'
+  - 'stop_auto_buy'
+  - 'rev_stop'
+  - 'went_on_backorder'
 
-Categorical_features:
-  - deck_risk: object
-  - sku: object
-  - stop_auto_buy: object
-  - ppap_risk: object
-  - rev_stop: object
-  - potential_issue: object
-  - oe_constraint: object
+Numerical_features_dataypes:
+  forecast_3_month: float64
+  forecast_6_month: float64
+  forecast_9_month: float64
+  in_transit_qty: float64
+  lead_time: float64
+  local_bo_qty: float64
+  min_bank: float64
+  national_inv: float64
+  perf_12_month_avg: float64
+  perf_6_month_avg: float64
+  pieces_past_due: float64
+  sales_1_month: float64
+  sales_3_month: float64
+  sales_6_month: float64
+  sales_9_month: float64
 
-Target_column:
-  - went_on_backorder: object
+Categorical_features_datatypes:
+  deck_risk: object
+  stop_auto_buy: object
+  ppap_risk: object
+  rev_stop: object
+  potential_issue: object
+  oe_constraint: object
+  went_on_backorder: object
 
 Target_column_Name: went_on_backorder
