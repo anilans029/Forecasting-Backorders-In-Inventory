@@ -1,4 +1,4 @@
-from backorder.entity import DataIngestionConfig, DataValidationConfig
+from backorder.entity import DataIngestionConfig, DataValidationConfig, DataTransformationConfig
 from backorder.exception import BackorderException
 from backorder.logger import logging
 import sys,os
@@ -80,6 +80,27 @@ class TrainingConfigurationManager:
             )
             return data_validation_config
 
+        except Exception as e:
+            logging.info(BackorderException(e,sys))
+            raise(BackorderException(e,sys))
+
+    def get_data_transformation_config(self):
+        try:
+
+            data_transformation_artifact_dir = Path(os.path.join(self.artifact_dir, DATA_TRANSFORMATION_ARTIFACT_DIR_NAME))
+            preprocessor_obj_file_path = Path(os.path.join(data_transformation_artifact_dir,
+                                                            DATA_TRANSFORMATION_TRANSFORMED_OBJECT_DIR,
+                                                            DATA_TRANSFORMATION_PREPROCESSOR_OBJ_FILE_NAME))
+            transformed_data_dir = Path(os.path.join(data_transformation_artifact_dir, DATA_TRANSFORMATION_TRASNFORMED_DIR_NAME))
+            transformed_test_file_path = Path(os.path.join(transformed_data_dir, DATA_TRANSFORMATION_TRANSFORMED_TEST_FILE_NAME))
+            transformed_train_file_path = Path(os.path.join(transformed_data_dir, DATA_TRANSFORMATION_TRANSFORMED_TRAIN_FILE_NAME))
+            
+            data_transformation_config = DataTransformationConfig(data_transformation_artifact_dir= data_transformation_artifact_dir,
+                                                                    preprocessor_obj_file_path=preprocessor_obj_file_path,
+                                                                    transformed_test_file_path= transformed_test_file_path,
+                                                                    transformed_train_file_path= transformed_train_file_path
+                                                                    )
+            return data_transformation_config
         except Exception as e:
             logging.info(BackorderException(e,sys))
             raise(BackorderException(e,sys))
