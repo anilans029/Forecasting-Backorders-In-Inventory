@@ -30,3 +30,12 @@ class DataValidationConfig:
     invalid_test_file_path: Path
     ks_2_samp_test_threshold: float
     drift_report_file_path: Path
+
+@dataclass(frozen=True)
+class DataTransformationConfig:
+
+    data_transformation_artifact_dir: Path
+    transformed_train_file_path: Path
+    transformed_test_file_path: Path
+    preprocessor_obj_file_path: Path
+    
