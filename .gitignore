@@ -135,3 +135,9 @@ backorders_data.zip
 backorders_data.csv
 
 artifact/*
+demo_main.py
+demo.py
+.vscode/*
+demo.py
+notebook/Forecasting_backorders.ipynb
+sample_dataset/backorders_data_sample.csv

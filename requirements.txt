@@ -10,3 +10,4 @@ boto3
 dataclasses
 PyYAML
 dill==0.3.6
+imblearn

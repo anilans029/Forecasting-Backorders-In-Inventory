@@ -10,6 +10,7 @@ boto3
 dataclasses
 PyYAML
 dill==0.3.6
+imblearn
 
 # dev requirements -
 pytest==7.1.3
