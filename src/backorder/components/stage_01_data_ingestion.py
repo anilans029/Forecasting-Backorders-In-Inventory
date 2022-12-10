@@ -188,21 +188,11 @@ class DataIngestion:
                     logging.info(f"getting the batch dates that are greater than recent_used_batch_date: {recent_used_batch_date}")
                     new_batch_dates = [batch_date for batch_date in batch_dates if recent_used_batch_date < batch_date]
                     downloaded_batches = self.download_all_new_data_from_source_bucket(new_batch_dates)
-                
+
                 else:
-                    logging.info("no new data available in the data-source. so skipping the downloading fucntion")
-                    old_merged_filepath= self.data_ingestion_config.feature_store_merged_filePath
-                    if os.path.exists(old_merged_filepath):
-                        old_data_df = pd.read_csv(old_merged_filepath)
-                    logging.info(f"loading the merged csv file and splitting the data into train and test datasets")
-                    self.split_data_to_train_test_sets(dataframe= old_data_df)
-                    data_ingestion_artifact = DataIngestionArtifact(
-                                                        feature_file_path= self.data_ingestion_config.feature_store_merged_filePath,
-                                                        test_file_path= self.data_ingestion_config.test_file_path,
-                                                        train_file_path= self.data_ingestion_config.train_file_path
-                                                )
-                    logging.info(f"Data_ingestion_artifacts: { data_ingestion_artifact }")
-                    return data_ingestion_artifact
+                    logging.info("no new data available in the data-source.so, skipping the downloading fucntion and stopping the ingestion")
+                    raise Exception(f"ingestion stoped due to unavailability of new data in data_source")
+                    
             else:
                 recent_batch_date_from_source, batch_dates = self.get_latest_batch_date_from_source()
                 logging.info("new data availabe in the data_source....lets download it")
