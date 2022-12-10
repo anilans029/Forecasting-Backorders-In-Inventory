@@ -20,6 +20,8 @@ class DataValidationArtifact:
 
 @dataclass(frozen=True)
 class DataTransformationArtifact:
+    is_Transformed: bool
     transformed_obj_file_path: Path
     transformed_train_file_path: Path
     transformed_test_file_path: Path
+    message: str
