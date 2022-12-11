@@ -89,13 +89,16 @@ class DataTransformation:
             logging.info(f"{'*'*10} initiating the data Transformation {'*'*10}\n")
             train_file_path = self.data_validation_artifact.valid_train_filepath
             test_file_path = self.data_validation_artifact.valid_test_filepath
+            valid_file_path = self.data_validation_artifact.valid_validation_file_path
             transformed_train_file_path = self.data_transformation_config.transformed_train_file_path
             transformed_test_file_path = self.data_transformation_config.transformed_test_file_path
+            transformed_valid_file_path = self.data_transformation_config.transformed_valid_file_path
             preprocesed_obj_file_path = self.data_transformation_config.preprocessor_obj_file_path
 
-            logging.info(f"loading the valid train and test files from valid data folder")
+            logging.info(f"loading the valid train, test, valid dataset files from valid data folder")
             train_df = self.get_data(train_file_path)
             test_df = self.get_data(test_file_path)
+            valid_df = self.get_data(valid_file_path)
 
             logging.info(f"seperating the independent and dependent features for train df")
             independent_train_df = train_df.drop(columns=[self.schema_of_data[SCHEMA_FILE_TARGET_COLUMN_NAME]])
@@ -104,6 +107,10 @@ class DataTransformation:
             logging.info(f"seperating the independent and dependent features for test df")
             independent_test_df = test_df.drop(columns=[self.schema_of_data[SCHEMA_FILE_TARGET_COLUMN_NAME]])
             target_feature_test_df = test_df[self.schema_of_data[SCHEMA_FILE_TARGET_COLUMN_NAME]].replace(TargetValueMapping().to_dict())
+
+            logging.info(f"seperating the independent and dependent features for valid df")
+            independent_valid_df = valid_df.drop(columns=[self.schema_of_data[SCHEMA_FILE_TARGET_COLUMN_NAME]])
+            target_feature_valid_df = valid_df[self.schema_of_data[SCHEMA_FILE_TARGET_COLUMN_NAME]].replace(TargetValueMapping().to_dict())
             
             ### numerical_features, categorical_features, target_feature
             num_features, cat_features = self.get_num_cat_features(dataframe= train_df)
@@ -117,6 +124,9 @@ class DataTransformation:
             logging.info(f"imputing the null values for the testing set")
             transformed_test_df = nan_imputer.transform(independent_test_df)
 
+            logging.info(f"imputing the null values for the validation set")
+            transformed_validation_df = nan_imputer.transform(independent_valid_df)
+
             logging.info(f"handling the imbalance data in the train dataset....")
             cat_features_index= [independent_train_df.columns.get_loc(col) for col in independent_train_df.columns if independent_train_df[col].dtype=="O"]
             smotenc = SMOTENC(categorical_features=cat_features_index)
@@ -126,15 +136,20 @@ class DataTransformation:
             preprocessor = self.get_preprocessor(num_features,cat_features)
             transf_train_feature_arr = preprocessor.fit_transform(train_independent_res)
             transf_test_feature_arr = preprocessor.transform(transformed_test_df)
+            transf_valid_feature_arr = preprocessor.transform(transformed_validation_df)
 
             logging.info("combining both the input and target features into single array for both train and test")
             train_arr = np.c_[transf_train_feature_arr, np.array(train_target_res)]
             test_arr = np.c_[transf_test_feature_arr, np.array(target_feature_test_df)]
+            valid_arr = np.c_[transf_valid_feature_arr, np.array(target_feature_valid_df)]
 
-            ### saving the test and train data arrays in their respective paths
-            logging.info(f"Saving the preprocessed train file at {[transformed_train_file_path]} and test data files at {[transformed_test_file_path]}.")
+            ### saving the test,train,valid data arrays in their respective paths
+            logging.info(f"""Saving the preprocessed train file at {[transformed_train_file_path]}
+                            test data files at {[transformed_test_file_path]}
+                            validation data file at {[transformed_valid_file_path]}.""")
             save_numpy_array_data(transformed_train_file_path,train_arr)
             save_numpy_array_data(transformed_test_file_path, test_arr)
+            save_numpy_array_data(transformed_valid_file_path, valid_arr)
 
             ### combining both the imputer and preprocessofr then saving the preprocessed obj 
             data_preprocessor_obj = DataPreprocessor(imputer=nan_imputer, preprocessor= preprocessor, num_features_list= num_features)
@@ -145,6 +160,7 @@ class DataTransformation:
                                        transformed_train_file_path= transformed_train_file_path ,
                                        transformed_test_file_path= transformed_test_file_path,
                                        transformed_obj_file_path= preprocesed_obj_file_path,
+                                       transformed_valid_file_path=transformed_valid_file_path,
                                        message= "Data Transformation completed succesfully")
             logging.info(f"data_Transformation artifact: {data_transformation_artifact}")
             logging.info(f"{'*'*10} completed the data Transformation {'*'*10}\n")

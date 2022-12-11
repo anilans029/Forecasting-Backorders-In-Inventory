@@ -12,7 +12,9 @@ class DataIngestionConfig:
     feature_store_raw_data_dir: Path
     train_file_path: Path
     test_file_path: Path
+    validation_file_path: Path
     test_split_ratio: float
+    validation_split_ratio: float
     failed_data_ingestion_dir: Path
     meta_data_file_path: Path
     data_ingestion_dir_name: str
@@ -25,9 +27,11 @@ class DataValidationConfig:
     valid_data_dir: Path
     invalid_data_dir: Path
     valid_train_file_path: Path
+    valid_validation_file_path: Path
     invalid_train_file_path: Path
     valid_test_file_path: Path
     invalid_test_file_path: Path
+    invalid_validation_file_path: Path
     ks_2_samp_test_threshold: float
     drift_report_file_path: Path
 
@@ -37,5 +41,6 @@ class DataTransformationConfig:
     data_transformation_artifact_dir: Path
     transformed_train_file_path: Path
     transformed_test_file_path: Path
+    transformed_valid_file_path: Path
     preprocessor_obj_file_path: Path
     

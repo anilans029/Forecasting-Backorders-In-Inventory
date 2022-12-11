@@ -27,19 +27,24 @@ class DataValidation:
             logging.info(BackorderException(e,sys))
             BackorderException(e,sys)
 
-    def is_train_test_merged_files_available(self, train_file_path, test_file_path,feature_store_merged_file_path)->bool:
+    def is_train_test_merged_files_available(self, train_file_path, test_file_path,
+                        feature_store_merged_file_path,validation_file_path)->bool:
         try:
             train_file_status, test_file_status,merged_file_status = False, False,False
+            validation_file_status = False
             if os.path.exists(train_file_path):
                 train_file_status = True
             if os.path.exists(test_file_path):
                 test_file_status = True
             if os.path.exists(feature_store_merged_file_path):
                 merged_file_status = True
+            if os.path.exists(validation_file_path):
+                validation_file_status = True
             logging.info(f"""train_file_available_status: {train_file_status}
                              test_file_available_status: {test_file_status}
-                             merged_file_status: {merged_file_status}""")
-            is_train_test_files_available = (train_file_status and test_file_status)and merged_file_status
+                             merged_file_status: {merged_file_status}
+                             validation_file_status: {validation_file_status}""")
+            is_train_test_files_available = (train_file_status and test_file_status)and (merged_file_status and validation_file_status)
             return is_train_test_files_available
 
         except Exception as e:
@@ -174,10 +179,11 @@ class DataValidation:
             logging.info(f"{'*'*10} initiating the data validation {'*'*10}\n")
             train_file_path = self.data_ingestion_artifact.train_file_path
             test_file_path = self.data_ingestion_artifact.test_file_path
+            validation_file_path = self.data_ingestion_artifact.validation_file_path
             feature_store_merged_file_path = self.data_ingestion_artifact.feature_file_path
 
-            #checking if train, test,merged_data files are available or not
-            if self.is_train_test_merged_files_available(train_file_path, test_file_path,feature_store_merged_file_path):
+            #checking if train, test,validation, merged_data files are available or not
+            if self.is_train_test_merged_files_available(train_file_path, test_file_path,feature_store_merged_file_path,validation_file_path):
                 ## loading the merged_data frame
                 merged_dataframe = DataValidation.get_data(feature_store_merged_file_path)
                 
@@ -207,23 +213,39 @@ class DataValidation:
                     create_directories([self.data_validation_config.valid_data_dir])
                     shutil.copy(self.data_ingestion_artifact.train_file_path, self.data_validation_config.valid_train_file_path)
                     shutil.copy(self.data_ingestion_artifact.test_file_path, self.data_validation_config.valid_test_file_path)
+                    shutil.copy(self.data_ingestion_artifact.validation_file_path, self.data_validation_config.valid_validation_file_path)
+                    data_validation_artifact = DataValidationArtifact(
+                                                    validation_status= total_validation_status,
+                                                    valid_train_filepath= self.data_validation_config.valid_train_file_path,
+                                                    valid_test_filepath=self.data_validation_config.valid_test_file_path,
+                                                    valid_validation_file_path= self.data_validation_config.valid_validation_file_path,
+                                                    Invalid_test_filepath= None,
+                                                    Invalid_train_filepath=None,
+                                                    Invalid_validation_file_path=None,
+                                                    drift_report_filepath=self.data_validation_config.drift_report_file_path
+                                                    )   
+                    logging.info(f"data_validation artifact: {data_validation_artifact}")
+                    logging.info(f"{'*'*10} completed the data validation {'*'*10}\n")
+                    return data_validation_artifact
                 else:
                     logging.info("moving the train and test dataset to invalid data dir")
                     create_directories([self.data_validation_config.invalid_data_dir])
                     shutil.copy(self.data_ingestion_artifact.train_file_path, self.data_validation_config.invalid_train_file_path)
                     shutil.copy(self.data_ingestion_artifact.test_file_path,self.data_validation_config.invalid_test_file_path)
-                    
-                data_validation_artifact = DataValidationArtifact(
-                                                validation_status= total_validation_status,
-                                                valid_train_filepath= self.data_validation_config.valid_train_file_path,
-                                                valid_test_filepath=self.data_validation_config.valid_test_file_path,
-                                                Invalid_test_filepath= self.data_validation_config.invalid_test_file_path,
-                                                Invalid_train_filepath=self.data_validation_config.invalid_train_file_path,
-                                                drift_report_filepath=self.data_validation_config.drift_report_file_path
-                                                )   
-                logging.info(f"data_validation artifact: {data_validation_artifact}")
-                logging.info(f"{'*'*10} completed the data validation {'*'*10}\n")
-                return data_validation_artifact
+                    shutil.copy(self.data_ingestion_artifact.validation_file_path, self.data_validation_config.invalid_validation_file_path)    
+                    data_validation_artifact = DataValidationArtifact(
+                                                    validation_status= total_validation_status,
+                                                    valid_train_filepath= None,
+                                                    valid_test_filepath=  None,
+                                                    valid_validation_file_path= None,
+                                                    Invalid_test_filepath= self.data_validation_config.invalid_test_file_path,
+                                                    Invalid_train_filepath=self.data_validation_config.invalid_train_file_path,
+                                                    Invalid_validation_file_path=self.data_validation_config.invalid_validation_file_path,
+                                                    drift_report_filepath=None
+                                                    )   
+                    logging.info(f"data_validation artifact: {data_validation_artifact}")
+                    logging.info(f"{'*'*10} completed the data validation {'*'*10}\n")
+                    return data_validation_artifact
 
                 
             else:

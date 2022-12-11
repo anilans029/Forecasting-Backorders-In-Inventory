@@ -152,15 +152,19 @@ class DataIngestion:
             logging.info(BackorderException(e, sys))
             raise BackorderException(e,sys)
 
-    def split_data_to_train_test_sets(self,dataframe):
+    def split_data_to_train_test_validation_sets(self,dataframe):
         try:
             train_set, test_set = train_test_split(dataframe, test_size= self.data_ingestion_config.test_split_ratio,
+                                                    stratify= dataframe[self.schema_file["Target_column_Name"]])
+
+            train_set, validation_set = train_test_split(dataframe, test_size= self.data_ingestion_config.validation_split_ratio,
                                                     stratify= dataframe[self.schema_file["Target_column_Name"]])
 
             create_directories([self.data_ingestion_config.ingested_data_dir])
             logging.info(f"saving the train and test files at: {self.data_ingestion_config.ingested_data_dir}")
             train_set.to_csv(self.data_ingestion_config.train_file_path,index=False)
             test_set.to_csv(self.data_ingestion_config.test_file_path,index=False)
+            validation_set.to_csv(self.data_ingestion_config.validation_file_path,index= False)
 
         except Exception as e:
             logging.info(BackorderException(e, sys))
@@ -203,14 +207,15 @@ class DataIngestion:
             merged_df = self.convert_json_files_to_csv()
             
             logging.info(f"loading the merged csv file and splitting the data into train and test datasets")
-            self.split_data_to_train_test_sets(dataframe= merged_df)
+            self.split_data_to_train_test_validation_sets(dataframe= merged_df)
 
             logging.info(f"write the meta data into yaml file")
             self.write_meta_data(downloaded_batches)
             data_ingestion_artifact = DataIngestionArtifact(
                                                 feature_file_path= self.data_ingestion_config.feature_store_merged_filePath,
                                                 test_file_path= self.data_ingestion_config.test_file_path,
-                                                train_file_path= self.data_ingestion_config.train_file_path
+                                                train_file_path= self.data_ingestion_config.train_file_path,
+                                                validation_file_path= self.data_ingestion_config.validation_file_path
                                         )
             logging.info(f"Data_ingestion_artifacts: { data_ingestion_artifact }")
             logging.info(f"{'*'*10} data ingestion completed {'*'*10}\n\n\n")

@@ -29,6 +29,7 @@ class TrainingConfigurationManager:
             failed_ingestion_dir = Path(os.path.join(data_ingestion_artifact_dir, DATA_INGESTION_FAILED_INGESTION_DIR))
             train_file_path= Path(os.path.join(ingested_data_dir, DATA_INGESTION_TRAIN_FILE_PATH))
             test_file_path = Path(os.path.join(ingested_data_dir, DATA_INGESTION_TEST_FILE_PATH))
+            validation_file_path = Path(os.path.join(ingested_data_dir, DATA_INGESTION_VALIDATION_FILE_NAME))
             meta_data_file_path= Path(os.path.join(data_ingestion_artifact_dir, DATA_INGESTION_METADATA_DIR_NAME,
                                                     DATA_INGESTION_METADATA_FILE_NAME))
 
@@ -41,7 +42,9 @@ class TrainingConfigurationManager:
                                                     feature_store_merged_filePath= feature_store_merged_filePath,
                                                     train_file_path= train_file_path,
                                                     test_file_path= test_file_path,
+                                                    validation_file_path=validation_file_path,
                                                     test_split_ratio= DATA_INGESTION_TEST_SPLIT_RATIO,
+                                                    validation_split_ratio= DATA_INGESTION_VALIDATION_SPLIT_RATIO, 
                                                     failed_data_ingestion_dir = failed_ingestion_dir,
                                                     meta_data_file_path=meta_data_file_path,
                                                     data_ingestion_dir_name=DATA_INGESTION_DIR_NAME,
@@ -63,6 +66,8 @@ class TrainingConfigurationManager:
             invalid_train_file_path = Path(os.path.join(invalid_data_dir,DATA_VALIDATION_INVALID_TRAIN_FILE_NAME))
             valid_test_file_path = Path(os.path.join(valid_data_dir, DATA_VALIDATION_VALID_TEST_FILE_NAME))
             invalid_test_file_path = Path(os.path.join(invalid_data_dir, DATA_VALIDATION_INVALID_TEST_FILE_NAME))
+            valid_validation_file_path= Path(os.path.join(valid_data_dir, DATA_VALIDATION_VALID_VALIDATION_FILE_NAME))
+            invalid_validation_file_path= Path(os.path.join(invalid_data_dir, DATA_VALIDATION_INVALID_VALIDATION_FILE_NAME))
             drift_report_file_path = Path(os.path.join(data_validation_artifact_dir,
                                                             DATA_VALIDATION_DRIFT_REPORT_DIR_NAME,
                                                             DATA_VALIDATION_DRIFT_REPORT_FILE_NAME))
@@ -76,7 +81,9 @@ class TrainingConfigurationManager:
                                             ks_2_samp_test_threshold= DATA_VALIDATION_KS_2SAMP_TEST_THRESHOLD,
                                             valid_data_dir=valid_data_dir,
                                             valid_test_file_path=valid_test_file_path,
-                                            valid_train_file_path=valid_train_file_path
+                                            valid_train_file_path=valid_train_file_path,
+                                            valid_validation_file_path= valid_validation_file_path,
+                                            invalid_validation_file_path=invalid_validation_file_path
             )
             return data_validation_config
 
@@ -94,11 +101,14 @@ class TrainingConfigurationManager:
             transformed_data_dir = Path(os.path.join(data_transformation_artifact_dir, DATA_TRANSFORMATION_TRASNFORMED_DIR_NAME))
             transformed_test_file_path = Path(os.path.join(transformed_data_dir, DATA_TRANSFORMATION_TRANSFORMED_TEST_FILE_NAME))
             transformed_train_file_path = Path(os.path.join(transformed_data_dir, DATA_TRANSFORMATION_TRANSFORMED_TRAIN_FILE_NAME))
-            
+            transformed_valid_file_path = Path(os.path.join(transformed_data_dir,DATA_TRANSFORMATION_TRANSFORMED_VALID_FILE_NAME))
+
             data_transformation_config = DataTransformationConfig(data_transformation_artifact_dir= data_transformation_artifact_dir,
                                                                     preprocessor_obj_file_path=preprocessor_obj_file_path,
                                                                     transformed_test_file_path= transformed_test_file_path,
-                                                                    transformed_train_file_path= transformed_train_file_path
+                                                                    transformed_train_file_path= transformed_train_file_path,
+                                                                    transformed_valid_file_path=transformed_valid_file_path
+                                                                    
                                                                     )
             return data_transformation_config
         except Exception as e:
