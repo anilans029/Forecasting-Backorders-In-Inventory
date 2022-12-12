@@ -1,4 +1,4 @@
-from backorder.entity import DataIngestionConfig, DataValidationConfig, DataTransformationConfig
+from backorder.entity import DataIngestionConfig, DataValidationConfig, DataTransformationConfig, ModelTrainerConfig
 from backorder.exception import BackorderException
 from backorder.logger import logging
 import sys,os
@@ -111,6 +111,24 @@ class TrainingConfigurationManager:
                                                                     
                                                                     )
             return data_transformation_config
+        except Exception as e:
+            logging.info(BackorderException(e,sys))
+            raise(BackorderException(e,sys))
+
+
+    def model_trainer_config(self):
+        try:
+            model_trainer_artifact_dir = Path(os.path.join(self.artifact_dir,MODEL_TRAINER_ARTIFACT_DIR_NAME))
+            trained_model_file_path = os.path.join(model_trainer_artifact_dir,
+                                                    MODEL_TRAINER_TRAINED_MODEL_DIR_NAME,
+                                                    MODEL_TRAINER_TRAINED_MODEL_NAME)
+
+            model_trainer_config = ModelTrainerConfig(
+                                            trained_model_file_path=trained_model_file_path,
+                                            models_config_file_path=MODEL_TRAINER_MODELS_CONFIG_FILE_PATH,
+                                            base_accuracy= MODEL_TRAINER_BASE_ACCURACY
+                                            )
+            return model_trainer_config
         except Exception as e:
             logging.info(BackorderException(e,sys))
             raise(BackorderException(e,sys))
