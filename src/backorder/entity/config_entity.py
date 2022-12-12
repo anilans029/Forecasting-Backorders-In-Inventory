@@ -44,3 +44,9 @@ class DataTransformationConfig:
     transformed_valid_file_path: Path
     preprocessor_obj_file_path: Path
     
+@dataclass(frozen= True)
+class ModelTrainerConfig:
+
+    trained_model_file_path: Path
+    models_config_file_path: Path
+    base_accuracy: float
