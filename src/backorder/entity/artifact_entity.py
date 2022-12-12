@@ -29,3 +29,15 @@ class DataTransformationArtifact:
     transformed_test_file_path: Path
     transformed_valid_file_path: Path
     message: str
+
+@dataclass(frozen=True)
+class ModelTrainerArtiact:
+    trained_model_file_path: Path
+    is_model_found: bool
+    train_f1_score: float
+    validation_f1_score: float
+    train_precision: float
+    train_recall: float
+    validation_precision: float
+    validation_recall: float
+    
