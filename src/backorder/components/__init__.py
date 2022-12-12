@@ -1,3 +1,4 @@
 from backorder.components.stage_01_data_ingestion import DataIngestion
 from backorder.components.stage_02_data_validation import DataValidation
 from backorder.components.stage_03_data_transformation import DataTransformation
+from backorder.components.stage_04_model_trainer import ModelTrainer
