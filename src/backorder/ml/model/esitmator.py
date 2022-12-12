@@ -98,3 +98,23 @@ class DataPreprocessor:
             return X
         except Exception as e:
             BackorderException(e,sys)
+
+class BackoderModel:
+    def __init__(self, transformer_obj, model_obj):
+        self.transformer = transformer_obj
+        self.model = model_obj
+
+    def predict(x):
+        try:
+            X = self.transformer.transform(x)
+            prediction = self.model.predict(X)
+            return prediction
+        except Exception as e:
+            logging.info(BackoderModel(e,sys))
+            BackorderException(e,sys)
+    
+    def __repr__(self):
+        return f"{type(self.model).__name__}()"
+
+    def __str__(self):
+        return f"{type(self.model).__name__}()"
