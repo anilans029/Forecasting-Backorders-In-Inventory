@@ -4,6 +4,7 @@ from backorder.constants.aws_s3 import *
 from backorder.entity.artifact_entity import DataIngestionArtifact
 from backorder.entity.config_entity import DataIngestionConfig
 from backorder.constants.training_pipeline_config import *
+from backorder.constants.training_pipeline_config.schema_file_constants import *
 from backorder.config import TrainingConfigurationManager
 from backorder.cloud_storage.s3_operations import S3Operations
 from backorder.utils import create_directories,read_yaml, write_yaml
@@ -19,7 +20,7 @@ class DataIngestion:
         try:
             self.data_ingestion_config = config
             self.s3_operations = S3Operations()
-            self.schema_file = read_yaml(filepath= os.path.join("src","backorder","config","schema.yaml"))
+            self.schema_file = read_yaml(SCHEMA_FILE_PATH)
 
         except Exception as e:
             logging.info(BackorderException(e, sys))
@@ -138,6 +139,8 @@ class DataIngestion:
                 logging.info(f"saving the merged df as csv file at: {[ self.data_ingestion_config.feature_store_merged_filePath ]}")
                 logging.info(f"Dropping the sku column since it is not useful for model")
                 merging_df.drop(columns=["sku"],inplace= True)
+                logging.info(f"as per analysis, replacing all the -99.0 values in per_x_month_avg columns to np.Nan")
+                merging_df[["perf_12_month_avg","perf_6_month_avg"]] = merging_df[["perf_12_month_avg","perf_6_month_avg"]].replace(-99.0,np.NaN)
                 merging_df.to_csv(self.data_ingestion_config.feature_store_merged_filePath,index=False)
                 return merging_df
             else:
@@ -146,6 +149,8 @@ class DataIngestion:
                 create_directories([merged_data_dir])
                 logging.info(f"Dropping the sku column since it is not useful for model")
                 merging_df.drop(columns=["sku"],inplace= True)
+                logging.info(f"as per analysis, replacing all the -99.0 values in per_x_month_avg columns to np.Nan")
+                merging_df[["perf_12_month_avg","perf_6_month_avg"]] = merging_df[["perf_12_month_avg","perf_6_month_avg"]].replace(-99.0,np.NaN)
                 merging_df.to_csv(self.data_ingestion_config.feature_store_merged_filePath,index=False)
                 return merging_df
         except Exception as e:
