@@ -5,6 +5,7 @@ from backorder.exception import BackorderException
 from sklearn.impute import SimpleImputer
 import os, sys
 from backorder.logger import logging
+import pandas as pd
 
 class TargetValueMapping:
     def __init__(self):
@@ -26,15 +27,27 @@ class FeatureScaler(BaseEstimator, TransformerMixin):
 
     def fit(self,X,y=None):
         try:
-            X =np.log(X+0.000001)
+            X =np.log(X+0.0001)
             self.scaler.fit(X,y)
             return self
         except Exception as e:
             BackorderException(e,sys)
+    
+    def log_transform(self,data_frame:pd.DataFrame):
+        """
+        np.sign(x) => Returns an element-wise indication of the sign of a number.
+                      The sign function returns -1 if x < 0,
+                       0 if x==0,
+                       1 if x > 0.
+                       nan is returned for nan inputs.
+        Applies log transform on input data"""
+        sign = np.sign(data_frame)
+        data_frame =  np.log(1.0+abs(data_frame))*sign
+        return data_frame
 
     def fit_transform(self, X, y=None):
         try:
-            X =np.log(X+0.000001)
+            X = np.apply_along_axis(self.log_transform, 1, X)
             X = self.scaler.fit_transform(X,y)
             return X
         except Exception as e:
