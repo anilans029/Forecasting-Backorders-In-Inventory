@@ -51,9 +51,10 @@ class ModelFactory:
             raise BackorderException(e,sys)
 
     @staticmethod
-    def get_class_for_name(self,module_name,class_name):
+    def get_class_for_name(module_name,class_name):
         try:
-            module = importlib(module_name)
+            logging.info(f"getting class :{class_name} from the module: {module_name}")
+            module = importlib.import_module(module_name)
             class_ref = getattr(module,class_name)
             return class_ref
 
@@ -66,7 +67,7 @@ class ModelFactory:
             if not isinstance(params_data, dict):
                 raise Exception(f"property_data prarameter required to be dictionary")
             for param, value in params_data.items():
-                logging.info(f"executing: {str(model_obj)}.{param}= {value}")
+                logging.info(f"updating prams for {model_obj.__class__} object: {param}= {value}")
                 setattr(model_obj,param,value)
             return model_obj
 
@@ -79,7 +80,7 @@ class ModelFactory:
             initialized_model_list = []
             for model_serial_number in self.all_models_intialization_config.keys():
                 single_model_initialization_config = self.all_models_intialization_config[model_serial_number]
-                model_class_reference = ModelFactory.get_class_for_name(moduel_name=single_model_initialization_config[MODULE_KEY],
+                model_class_reference = ModelFactory.get_class_for_name(module_name=single_model_initialization_config[MODULE_KEY],
                                                                 class_name= single_model_initialization_config[CLASS_KEY])
                 model_obj = model_class_reference()
 
@@ -87,14 +88,14 @@ class ModelFactory:
                     model_obj_params = single_model_initialization_config[PARAM_KEY]
                     initialized_model_obj = self.update_parameters_for_model(model_obj, model_obj_params)
                     
-                    grid_params = single_model_initialization_config[SEARCH_PARAM_GRID_KEY]
-                    model_name = f"{single_model_initialization_config[MODULE_KEY]}.{single_model_initialization_config[CLASS_KEY]}"
-                    initialized_model_list.append(InitializedModelDetail(
-                                                        model_name= model_name,
-                                                        model_serial_number= model_serial_number,
-                                                        model_obj= initialized_model_obj,
-                                                        params_grid_search= grid_params
-                                                        ))
+                grid_params = single_model_initialization_config[SEARCH_PARAM_GRID_KEY]
+                model_name = f"{single_model_initialization_config[MODULE_KEY]}.{single_model_initialization_config[CLASS_KEY]}"
+                initialized_model_list.append(InitializedModelDetail(
+                                                    model_name= model_name,
+                                                    model_serial_number= model_serial_number,
+                                                    model_obj= initialized_model_obj,
+                                                    params_grid_search= grid_params
+                                                    ))
                 self.initialized_model_list =  initialized_model_list
             return initialized_model_list
 
@@ -111,14 +112,16 @@ class ModelFactory:
                                         module_name=self.grid__search_csv_module,
                                         class_name=self.grid_search_cv_class)
 
-                grid_search_cv_obj = grid_search_class_ref(estimator=initialized_model,
+                grid_search_cv_obj = grid_search_class_ref(estimator=initialized_model.model_obj,
                                       param_grid = initialized_model.params_grid_search)
                 self.update_parameters_for_model(model_obj= grid_search_cv_obj,
                                                 params_data=self.grid_search_cv_propertry_data)
-
+                logging.info(f"started searching the best params for the model: {initialized_model.model_name}")
                 grid_search_cv_obj.fit(input_feature, output_feature)
+                logging.info(f"best params found for the {initialized_model.model_name} are : {grid_search_cv_obj.best_params_}")
                 grid_searched_best_model = GridSearchedBestModel(model= initialized_model,
                                                 best_model=grid_search_cv_obj.best_estimator_,
+                                                model_serial_number = initialized_model.model_serial_number,
                                                 best_score=grid_search_cv_obj.best_score_,
                                                 best_parameters=grid_search_cv_obj.best_params_)
                 return grid_searched_best_model
@@ -155,12 +158,13 @@ class ModelFactory:
                                                     input_features = input_x,
                                                     output_features= output_y
                                                     )
+            logging.info(f"grid_searched_best_model_list: {grid_searched_best_model_list}")
             best_model = self.get_best_model_from_grid_searched_best_model_list(
                                                     grid_searched_best_model_list=grid_searched_best_model_list,
                                                     base_accuracy= base_accuracy
                                                     )
             logging.info(f"*********************The model_list is : [{grid_searched_best_model_list}*******************]")
-            best_model = ModelFactory.get_best_model_from_grid_searched_best_model_list(grid_searched_best_model_list =grid_searched_best_model_list,
+            best_model = self.get_best_model_from_grid_searched_best_model_list(grid_searched_best_model_list =grid_searched_best_model_list,
                                                                                         base_accuracy= base_accuracy)
             return best_model
 
