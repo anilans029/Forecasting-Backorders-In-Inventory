@@ -116,7 +116,7 @@ class TrainingConfigurationManager:
             raise(BackorderException(e,sys))
 
 
-    def model_trainer_config(self):
+    def get_model_trainer_config(self):
         try:
             model_trainer_artifact_dir = Path(os.path.join(self.artifact_dir,MODEL_TRAINER_ARTIFACT_DIR_NAME))
             trained_model_file_path = os.path.join(model_trainer_artifact_dir,
