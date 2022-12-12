@@ -58,7 +58,7 @@ class ModelTrainer:
             best_model = model_factory.get_best_model(input_x=train_x_arr,
                                                     output_y=train_y_arr,
                                                     base_accuracy= self.model_trainer_config.base_accuracy)
-            logging.info(f"best model found on training dataset: {best_model}")
+            logging.info(f"best model found on training dataset: {best_model.best_model.__class__}")
 
             logging.info(f"now evaluating the all the trianed models on both trained and validation sets")
             grid_searched_best_model_list = model_factory.grid_searched_best_model_list

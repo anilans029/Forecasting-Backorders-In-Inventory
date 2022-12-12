@@ -93,7 +93,7 @@ class ModelFactory:
                 initialized_model_list.append(InitializedModelDetail(
                                                     model_name= model_name,
                                                     model_serial_number= model_serial_number,
-                                                    model_obj= initialized_model_obj,
+                                                    model_obj= initialized_model_obj if PARAM_KEY in single_model_initialization_config else model_obj,
                                                     params_grid_search= grid_params
                                                     ))
                 self.initialized_model_list =  initialized_model_list
@@ -136,10 +136,15 @@ class ModelFactory:
 
             try:
                 self.grid_searched_best_model_list= []
+                
                 for initialized_model in initialized_model_list:
                     grid_searched_best_model = self.start_best_parameter_search_for_initialized_model(initialized_model= initialized_model,
                                                                                                    input_feature= input_features ,
                                                                                                      output_feature=output_features)
+                    logging.info(f"""Grid_searched_best_model:
+                                    model = {grid_searched_best_model.best_model.__class__}
+                                    model_serial_number = {grid_searched_best_model.model_serial_number}
+                                    best_parameters= {grid_searched_best_model.best_parameters}""")
                     self.grid_searched_best_model_list.append(grid_searched_best_model)
                 return self.grid_searched_best_model_list
 
@@ -158,14 +163,13 @@ class ModelFactory:
                                                     input_features = input_x,
                                                     output_features= output_y
                                                     )
-            logging.info(f"grid_searched_best_model_list: {grid_searched_best_model_list}")
+            
+            logging.info(f"\nBest models list after do grid search: {[model.best_model.__class__ for model in grid_searched_best_model_list]}")
+            logging.info(f"Now finding the best model out of all the models in the above list")
             best_model = self.get_best_model_from_grid_searched_best_model_list(
                                                     grid_searched_best_model_list=grid_searched_best_model_list,
                                                     base_accuracy= base_accuracy
                                                     )
-            logging.info(f"*********************The model_list is : [{grid_searched_best_model_list}*******************]")
-            best_model = self.get_best_model_from_grid_searched_best_model_list(grid_searched_best_model_list =grid_searched_best_model_list,
-                                                                                        base_accuracy= base_accuracy)
             return best_model
 
         except Exception as e:
@@ -180,13 +184,13 @@ class ModelFactory:
             for grid_searched_best_model in grid_searched_best_model_list:
                 print(grid_searched_best_model)
                 if base_accuracy < grid_searched_best_model.best_score:
-                    logging.info(f"Acceptable model found:{grid_searched_best_model}")
+                    logging.info(f"Acceptable model found:{grid_searched_best_model.best_model.__class__}")
                     
                     base_accuracy = grid_searched_best_model.best_score
                     best_model = grid_searched_best_model
             if not best_model:
                     raise Exception(f"None of Model has base accuracy >= {base_accuracy}")
-            logging.info(f"Best Model: {best_model}")
+            logging.info(f"Best Model: {best_model.best_model.__class__}")
             return best_model
 
         except Exception as e:

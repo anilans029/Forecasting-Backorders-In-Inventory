@@ -34,7 +34,7 @@ class EvaluateClassificationModel:
                 ## making the predicitions for the train and test sets
                 train_y_pred = model.predict(self.train_x)
                 test_y_pred = model.predict(self.test_x)
-
+               
                 ## calculating the f1_score for both train and test sets
                 train_f1_score = f1_score(self.train_y, train_y_pred)
                 test_f1_score = f1_score(self.test_y, test_y_pred)
@@ -52,17 +52,18 @@ class EvaluateClassificationModel:
                 diff_test_train_acc = abs(train_f1_score - test_f1_score)
 
                 #logging all important metrics
+                logging.info(f"\n\nClassificatin metrics for the model '{model.__class__}': ")
                 logging.info(f"{'**'* 15} F1-Score {'**'* 15}")
                 logging.info(f"Train Score\t\t Test Score\t\t Average Score")
-                logging.info(f"{train_f1_score}\t\t {test_f1_score}\t\t{model_accuracy}\n\n")
+                logging.info(f"{train_f1_score}\t\t {test_f1_score}\t\t{model_accuracy}")
 
                 logging.info(f"{'**'* 15} precision_score {'**'* 15}")
                 logging.info(f"Train Score\t\t Test Score")
-                logging.info(f"{train_precision_score}\t\t {train_precision_score}\n\n")
+                logging.info(f"{train_precision_score}\t\t {train_precision_score}")
 
                 logging.info(f"{'**'* 15} recall_score {'**'* 15}")
                 logging.info(f"Train Score\t\t Test Score\t\t Average Score")
-                logging.info(f"{train_recall_score}\t\t {test_recall_score}\n\n")
+                logging.info(f"{train_recall_score}\t\t {test_recall_score}")
 
                 logging.info(f"Diff of  test, train accuracy: [{diff_test_train_acc}].") 
                 logging.info(f"Checking if the model is having better accuracy")
@@ -79,7 +80,8 @@ class EvaluateClassificationModel:
                                                             model_accuracy= model_accuracy
                                                             )
                     logging.info(f"Acceptable model found {metric_info_artifact}. ")
-                
+                else:
+                    logging.info(f"This model is not having better accuracy")
             if metric_info_artifact is None:
                 raise Exception(f"No model is satifying the base accuracy, hence decling all the models")
             return metric_info_artifact
