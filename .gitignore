@@ -129,15 +129,18 @@ dmypy.json
 .pyre/
 
 
-data_source/*
+# .vscode ide 
+.vscode/
+
+# development phase trails
+notebook/Forecasting_backorders.ipynb
+sample_dataset/backorders_data_sample.csv
+demo.py
+sample_models_dir/
+sample_dataset/
+data_source/
 notebook/Forecasting_backorders (2).ipynb
 backorders_data.zip
 backorders_data.csv
-
-artifact/*
+artifact/
 demo_main.py
-demo.py
-.vscode/*
-demo.py
-notebook/Forecasting_backorders.ipynb
-sample_dataset/backorders_data_sample.csv
