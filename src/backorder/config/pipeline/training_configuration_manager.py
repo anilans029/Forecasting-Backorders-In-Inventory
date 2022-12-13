@@ -1,9 +1,10 @@
 from backorder.entity import DataIngestionConfig, DataValidationConfig, DataTransformationConfig, ModelTrainerConfig, ModelEvaluationConfig
+from backorder.entity import ModelPusherConfig
 from backorder.exception import BackorderException
 from backorder.logger import logging
 import sys,os
 from backorder.constants.training_pipeline_config import *
-from backorder.constants.aws_s3 import DATA_SOURCE_BUCKET_NAME, ARTIFACTS_BUCKET_NAME
+from backorder.constants.aws_s3 import *
 from datetime import datetime
 from pathlib import Path
 
@@ -153,6 +154,21 @@ class TrainingConfigurationManager:
                                                 )
             return model_evaluation_config
 
+        except Exception as e:
+            logging.info(BackorderException(e,sys))
+            raise(BackorderException(e,sys))
+
+    def get_model_pusher_config(self):
+        try:
+            
+            model_pusher_config = ModelPusherConfig(
+                                                model_registry_bucket_name= MODEL_REGISTRY_BUCKET_NAME,
+                                                model_registry_latest_model_dir_key= MODEL_REGISTRY_LATEST_MODEL_FOLDER_NAME,
+                                                model_registry_latest_model_obj_key= MODEL_REGISTRY_LATEST_MODEL_KEY,
+                                                model_registry_previous_model_obj_key= MODEL_REGISTRY_PREVIOUS_MODEL_KEY,
+                                                model_registry_previous_model_dir = MODEL_REGISTRY_PREVIOUS_MODEL_DIR_NAME
+                                                )
+            return model_pusher_config
         except Exception as e:
             logging.info(BackorderException(e,sys))
             raise(BackorderException(e,sys))
