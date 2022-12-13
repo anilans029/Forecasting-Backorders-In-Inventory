@@ -32,6 +32,7 @@ class ModelTrainer:
 
     def initiate_model_training(self):
         try:
+            logging.info(f"{'*'*10} initiating the Model Training {'*'*10}\n")
             trained_model_file_path = self.model_trainer_config.trained_model_file_path
 
 
@@ -82,7 +83,7 @@ class ModelTrainer:
             
             logging.info(f"saving the trained model object at : {trained_model_file_path}")
             save_object(file_path=trained_model_file_path,
-                        obj= metric_info_artifact.model_object)
+                        obj= backorder_model_obj)
 
             model_trainer_artifact = ModelTrainerArtiact(trained_model_file_path= trained_model_file_path,
                                                         is_model_found= True,
