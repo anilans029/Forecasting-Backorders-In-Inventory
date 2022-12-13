@@ -3,3 +3,4 @@ from backorder.components.stage_02_data_validation import DataValidation
 from backorder.components.stage_03_data_transformation import DataTransformation
 from backorder.components.stage_04_model_trainer import ModelTrainer
 from backorder.components.stage_05_model_evaluation import ModelEvaluation
+from backorder.components.stage_06_model_pusher import ModelPusher
