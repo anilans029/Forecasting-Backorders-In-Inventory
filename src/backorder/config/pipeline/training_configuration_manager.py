@@ -1,4 +1,4 @@
-from backorder.entity import DataIngestionConfig, DataValidationConfig, DataTransformationConfig, ModelTrainerConfig
+from backorder.entity import DataIngestionConfig, DataValidationConfig, DataTransformationConfig, ModelTrainerConfig, ModelEvaluationConfig
 from backorder.exception import BackorderException
 from backorder.logger import logging
 import sys,os
@@ -129,6 +129,30 @@ class TrainingConfigurationManager:
                                             base_accuracy= MODEL_TRAINER_BASE_ACCURACY
                                             )
             return model_trainer_config
+        except Exception as e:
+            logging.info(BackorderException(e,sys))
+            raise(BackorderException(e,sys))
+        
+    def get_model_evaluation_config(self):
+        try:
+            model_evaluation_artifact_dir = Path(os.path.join(self.artifact_dir, MODEL_EVALUATION_ARTIFACT_DIR_NAME))
+            best_model_artifact_file_path = Path(os.path.join(model_evaluation_artifact_dir,"model_registry", BEST_MODEL_OBJ_FILE_NAME))
+            accepted_model_dir = Path(os.path.join(model_evaluation_artifact_dir,MODEL_EVALUATION_ACCEPTED_MODEL_DIR_NAME))
+            accpeted_model_artifact_file_path = Path(os.path.join(accepted_model_dir, BEST_MODEL_OBJ_FILE_NAME))
+            model_registry_bucket_latest_model_key = MODEL_REGISTRY_LATEST_MODEL_DIR_NAME+"/"+BEST_MODEL_OBJ_FILE_NAME
+
+            model_evaluation_config = ModelEvaluationConfig(
+                                                changed_accuracy_threshold= MODEL_EVALUATION_CHANGED_THRESHOLD_ACCURACY,
+                                                model_registry_bucket_latest_model_key = model_registry_bucket_latest_model_key,
+                                                model_registry_latest_model_dir= MODEL_REGISTRY_LATEST_MODEL_DIR_NAME,
+                                                best_model_artifact_file_path =best_model_artifact_file_path,
+                                                accepted_model_artifact_file_path= accpeted_model_artifact_file_path,
+                                                model_registry_bucket_name = MODEL_REGISTRY_BUCKET_NAME,
+                                                best_model_obj_file_name= BEST_MODEL_OBJ_FILE_NAME,
+
+                                                )
+            return model_evaluation_config
+
         except Exception as e:
             logging.info(BackorderException(e,sys))
             raise(BackorderException(e,sys))
