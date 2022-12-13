@@ -126,11 +126,14 @@ class ModelEvaluation:
                                                                                     model=trained_best_model_obj
                                                                                     )
                 trained_model_accuracy = trained_model_metrics.model_accuracy
+                logging.info(f"saving the accepted model obj at {accepted_model_file_path} ")
+                create_directories([os.path.dirname(accepted_model_file_path)])
+                shutil.copy(trained_model_file_path,accepted_model_file_path)
                 model_evaluation_artifact = ModelEvaluationArtifact(is_model_accepted= True,
                                                                     changed_accuracy= None,
                                                                     best_model_metric_artifact= trained_model_metrics,
-                                                                    accepted_model_path = None,
-                                                                    best_model_path= best_model_artifact_file_path,
+                                                                    accepted_model_path = accepted_model_file_path,
+                                                                    best_model_path= None,
                                                                     )
                 logging.info(f"model_evaluation_artifact : {model_evaluation_artifact}")
                 logging.info(f"{'*'*10} Model Evaluation Phase completed {'*'*10}\n")
