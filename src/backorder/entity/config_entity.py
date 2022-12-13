@@ -50,3 +50,14 @@ class ModelTrainerConfig:
     trained_model_file_path: Path
     models_config_file_path: Path
     base_accuracy: float
+
+@dataclass(frozen= True)
+class ModelEvaluationConfig:
+
+    changed_accuracy_threshold: float
+    model_registry_bucket_latest_model_key : str
+    model_registry_latest_model_dir: str
+    model_registry_bucket_name: str
+    best_model_obj_file_name: str
+    best_model_artifact_file_path: Path
+    accepted_model_artifact_file_path: Path
