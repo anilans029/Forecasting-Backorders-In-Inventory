@@ -41,3 +41,11 @@ class ModelTrainerArtiact:
     validation_precision: float
     validation_recall: float
     
+
+@dataclass(frozen= True)
+class ModelEvaluationArtifact:
+    is_model_accepted: bool
+    changed_accuracy: float
+    best_model_path: str
+    accepted_model_path: str
+    best_model_metric_artifact: dict
