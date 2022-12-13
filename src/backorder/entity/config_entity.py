@@ -61,3 +61,12 @@ class ModelEvaluationConfig:
     best_model_obj_file_name: str
     best_model_artifact_file_path: Path
     accepted_model_artifact_file_path: Path
+
+@dataclass(frozen= True)
+class ModelPusherConfig:
+    model_registry_bucket_name: str
+    model_registry_latest_model_dir_key: str
+    model_registry_latest_model_obj_key: str
+    model_registry_previous_model_obj_key: str
+    model_registry_previous_model_dir: str
+    
