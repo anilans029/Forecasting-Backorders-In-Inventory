@@ -49,3 +49,8 @@ class ModelEvaluationArtifact:
     best_model_path: str
     accepted_model_path: str
     best_model_metric_artifact: dict
+@dataclass(frozen=True)
+class ModelPusherArtifact:
+    is_model_pushed: bool
+    bucket_name: str
+    latest_model_obj_key: str
