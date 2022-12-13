@@ -7,6 +7,10 @@ class S3Operations:
     
     def __init__(self):
         try:
+            self.s3_resource = boto3.resource("s3",
+                            aws_secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY"),
+                            aws_access_key_id = os.getenv("AWS_ACCESS_KEY_ID")
+                            )
         
             self.s3_client = boto3.client("s3",
                             aws_secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY"),
@@ -101,7 +105,30 @@ class S3Operations:
             logging.info(BackorderException(e,sys))
             raise BackorderException(e,sys)
 
+    def is_s3_key_path_available(self, bucket_name, s3_key) -> bool:
+        try:
+            bucket = self.get_bucket(bucket_name)
+            file_objects = [
+                            file_object for file_object in bucket.objects.filter(Prefix=s3_key)
+                           ]
+            if len(file_objects) > 0:
+                return True
+            else:
+                return False
 
+        except Exception as e:
+            logging.info(BackorderException(e,sys))
+            raise BackorderException(e, sys)
+
+    def get_bucket(self, bucket_name: str):
+    
+        try:
+            bucket = self.s3_resource.Bucket(bucket_name)
+            return bucket
+
+        except Exception as e:
+            logging.info(BackorderException(e,sys))
+            raise BackorderException(e, sys)
 
      
 
