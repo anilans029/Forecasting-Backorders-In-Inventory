@@ -56,7 +56,6 @@ class FeatureScaler(BaseEstimator, TransformerMixin):
     def transform(self,X):
         try:
             X = self.scaler.transform(X)
-            logging.info(f"after numerical_transformation: {X}")
             return X
         except Exception as e:
             BackorderException(e,sys)
@@ -117,7 +116,7 @@ class BackoderModel:
         self.transformer = transformer_obj
         self.model = model_obj
 
-    def predict(x):
+    def transform_predict(self,x):
         try:
             X = self.transformer.transform(x)
             prediction = self.model.predict(X)
@@ -126,8 +125,18 @@ class BackoderModel:
             logging.info(BackoderModel(e,sys))
             BackorderException(e,sys)
     
+    def predict(self,x):
+        try:
+            prediction = self.model.predict(x)
+            return prediction
+        except Exception as e:
+            logging.info(BackoderModel(e,sys))
+            BackorderException(e,sys)
+
     def __repr__(self):
         return f"{type(self.model).__name__}()"
 
     def __str__(self):
         return f"{type(self.model).__name__}()"
+
+    
