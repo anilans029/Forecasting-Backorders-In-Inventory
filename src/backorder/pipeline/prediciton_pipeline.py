@@ -73,22 +73,22 @@ class PredictionPipeline:
             #6. use the same model object to do predictions and replace the predicted outcome with the class "yes" or "no"
             #7. for single instance return the predictions
             #8. for the batch-data save the outcomes as csv and upload to s3 bucket
-
-
             model_object = self.get_model_object()
             logging.info(f"got the latest model object")
 
             prediction_outcome = model_object.transform_predict(dataframe)
-            logging.info(f"prediction outcome :int(prediction_outcome)")
+            logging.info(f"prediction outcome :{int(prediction_outcome)}")
             predicion_class_name_dict =  self.target_value_mapping.reverse_mapping()
             final_pred_class = predicion_class_name_dict[int(prediction_outcome)]
             dataframe["went_on_backorder"] = final_pred_class
             logging.info(dataframe)
             # final_pred_df = (pd.DataFrame(prediction_outcome)).replace(predicion_classes_dict)
             if int(prediction_outcome)==0:
-                return f"{final_pred_class}, it will not be backorder"
+                logging.info(f"{final_pred_class}, it will not be backordered")
+                return f"{final_pred_class}, it will not be backordered"
             else:
-                return f"{final_pred_class}, it will be backorder"
+                logging.info(f"{final_pred_class}, it will be backordered")
+                return f"{final_pred_class}, it will be backordered"
 
         except Exception as e:
             logging.info(BackorderException(e,sys))
