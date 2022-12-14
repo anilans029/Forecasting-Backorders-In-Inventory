@@ -2,6 +2,9 @@ import os, sys
 from backorder.exception import BackorderException
 from backorder.logger import logging
 import boto3
+from io import StringIO
+import pandas as pd
+
 
 class S3Operations:
     
@@ -85,12 +88,23 @@ class S3Operations:
             logging.info(BackorderException(e,sys))
             raise BackorderException(e,sys)
 
-    def list_all_objects_in_s3Bucket(self, bucket_name):
+    def is_bucket_available_in_s3(self,bucket_name:str)->bool:
         try:
-            buckets = self.list_all_buckets_in_s3()
+            buckets_list = self.list_all_buckets_in_s3()
+            if bucket_name in buckets_list:
+                return True
+            else:
+                return False
+        
+        except Exception as e:
+            logging.info(BackorderException(e,sys))
+            raise BackorderException(e,sys)
+
+    def list_all_objects_in_s3Bucket(self, bucket_name, prefix=None):
+        try:
             objects= []
-            if bucket_name in buckets:
-                response = self.s3_client.list_objects(Bucket = bucket_name)
+            if self.is_bucket_available_in_s3(bucket_name=bucket_name):
+                response = self.s3_client.list_objects(Bucket = bucket_name, Prefix= prefix)
                 if response.get("Contents")!= None:
                     for content in response.get('Contents'):
                         objects.append(content.get("Key"))
@@ -98,7 +112,6 @@ class S3Operations:
                 else:
                     return None
             else:
-                logging.info(BackorderException(e,sys))
                 raise Exception('No such bucket exists in s3')
 
         except Exception as e:
@@ -132,7 +145,30 @@ class S3Operations:
 
      
 
+    def read_csv_file_from_s3(self, bucket_name:str, key:str)->pd.DataFrame:
+        try:
+            if self.is_s3_key_path_available(bucket_name=bucket_name,s3_key=key):
+                resp = self.s3_client.get_object(Bucket= bucket_name,
+                                                Key = key
+                                                )
 
+                csv_string = resp["Body"].read().decode("utf-8")
+                df = pd.read_csv(StringIO(csv_string))
+                return df
+            else:
+                raise Exception("key path not available in s3 bucket")
 
+        except Exception as e:
+            logging.info(BackorderException(e,sys))
+            raise BackorderException(e, sys)
 
-     
+    def save_dataframe_as_csv_s3(self, bucket_name: str, key:str,dataframe:pd.DataFrame):
+        try:
+            csv_buf = StringIO()
+            dataframe.to_csv(csv_buf, header=True,index=False)
+            csv_buf.seek(0)
+            self.s3_client.put_object(Bucket=bucket_name,Key=key, Body = csv_buf.getvalue()  )
+
+        except Exception as e:
+            logging.info(BackorderException(e,sys))
+            raise BackorderException(e, sys)
