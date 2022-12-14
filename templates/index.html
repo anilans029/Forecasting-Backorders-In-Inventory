@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>BackOrder Prediction</title>
+    <meta charset="utf-8">
+    <!-- BootStrap -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css"
+    integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+    <!-- css -->
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/Style.css')}}">
+    <style>
+        body{
+            /* background-image:url('https://barn2.com/wp-content/uploads/2021/08/How-to-Display-WooCommerce-Backorder-Products-Blog-Header.png'); */
+          background-repeat: no-repeat;
+        background-attachment: fixed;
+        background-color: cadetblue;
+      background-size: cover; }
+    </style>
+  </head>
+  <body>
+    <h1>
+      <div style ="text-align:center; margin: 5rem 0;">
+        <font color='#003366'>
+          BACKORDER PREDICTION
+        </font>
+      </div>
+    </h1>
+   <div class="wrapper">
+     <div class="container-fluid my-1">
+      <form action="\predict" method="post">
+       <div class="row">
+         <div class="col-lg-3">
+            <div class="form-group">
+              <label for="national_inv" class="ph-area">Enter National_Inv</label>
+             <input type="text" name="national_inv" id="national_inv" class="form-control" required>
+          </div>
+             <div class="form-group">
+                 <label for="lead_time" class="ph-area">Enter Lead_Time</label>
+              <input type="text" name="lead_time" id="lead_time" class="form-control" required>
+          </div>
+           <div class="form-group">
+              <label for="in_transit_qty" class="ph-area">Enter In Transit Qty</label>
+             <input type="text" name="in_transit_qty" id="in_transit_qty" class="form-control" required>
+          </div>
+          <div class="form-group">
+              <label for="forecast_3_month" class="ph-area">Enter 3 Months Forecasting</label>
+             <input type="text" name="forecast_3_month" id="forecast_3_month" class="form-control" required>
+          </div>
+         <div class="form-group">
+            <label for="forecast_6_month" class="ph-area">Enter 6 Months Forecasting</label>
+         <input type="text" name="forecast_6_month" id="forecast_6_month" class="form-control" required>
+         </div>
+         <div class="form-group">
+            <label for="forecast_9_month" class="ph-area">Enter 9 Months Forecasting</label>
+         <input type="text" name="forecast_9_month" id="forecast_9_month" class="form-control" required>
+         </div>
+         </div>
+         <div class="col-lg-3">
+            
+            <div class="form-group">
+              <label for="sales_1_month" class="ph-area">Enter 1st month Sale</label>
+             <input type="text" name="sales_1_month" id="sales_1_month" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label for="sales_3_month" class="ph-area">Enter 3rd month Sale</label>
+           <input type="text" name="sales_3_month" id="sales_3_month" class="form-control" required>
+         </div>
+         <div class="form-group">
+            <label for="sales_6_month" class="ph-area">Enter 6th month Sale</label>
+           <input type="text" name="sales_6_month" id="sales_6_month" class="form-control" required>
+         </div>
+         <div class="form-group">
+            <label for="sales_9_month" class="ph-area">Enter 9th month Sale</label>
+           <input type="text" name="sales_9_month" id="sales_9_month" class="form-control" required>
+         </div>
+         <div class="form-group">
+            <label for="min_bank" class="ph-area">Enter Minimum Balance</label>
+           <input type="text" name="min_bank" id="min_bank" class="form-control" required>
+        </div>
+        <div class="form-group">
+            <label for="potential_issue" class="ph-area">Enter Potential_Issue </label>
+            <select name="potential_issue" id="cars"  class="form-control">
+              <option value="Yes">Yes</option>
+              <option value="No">No</option>
+            </select>
+        </div>
+         </div>
+         <div class="col-lg-3">
+            
+           <div class="form-group">
+               <label for="pieces_past_due" class="ph-area">Enter Past Due Pieces</label>
+              <input type="text" name="pieces_past_due" id="pieces_past_due" class="form-control" required>
+           </div>
+            <div class="form-group">
+              <label for="perf_6_month_avg" class="ph-area">Enter 6 Month Avg Preference</label>
+             <input type="text" name="perf_6_month_avg" id="perf_6_month_avg" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label for="perf_12_month_avg" class="ph-area">Enter 12 Month Avg Preference</label>
+           <input type="text" name="perf_12_month_avg" id="perf_12_month_avg" class="form-control" required>
+        </div>
+          <div class="form-group">
+              <label for="local_bo_qty" class="ph-area">Enter Local Bo Qty</label>
+             <input type="text" name="local_bo_qty" id="local_bo_qty" class="form-control" required>
+          </div>
+          <div class="form-group">
+
+              <label for="deck_risk" class="ph-area">Enter Deck Risk </label>
+              <select name="deck_risk" id="cars"  class="form-control">
+                <option value="Yes">Yes</option>
+                <option value="No">No</option>
+              </select>
+          </div>
+          <div class="form-group">
+              <label for="oe_constraint" class="ph-area">Enter Oe Constraint </label>
+              <select name="oe_constraint" id="cars"  class="form-control">
+                <option value="Yes">Yes</option>
+                <option value="No">No</option>
+              </select>
+          </div>
+          <div class="form-group">
+            <label for="ppap_risk" class="ph-area">Enter Ppap Risk </label>
+            <select name="ppap_risk" id="cars"  class="form-control">
+              <option value="Yes">Yes</option>
+              <option value="No">No</option>
+            </select>
+        </div>
+         </div>
+         <div class="col-lg-3">
+            
+          <div class="form-group">
+              <label for="stop_auto_buy" class="ph-area">Enter Stop Auto Buy </label>
+              <select name="stop_auto_buy" id="cars"  class="form-control">
+                <option value="Yes">Yes</option>
+                <option value="No">No</option>
+              </select>
+          </div>
+          <div class="form-group">
+              <label for="rev_stop" class="ph-area">Enter Rev stops </label>
+              <select name="rev_stop" id="cars"  class="form-control">
+                <option value="Yes">Yes</option>
+                <option value="No">No</option>
+              </select>
+          </div>
+          <div class="form-group">
+            <input type="submit" class="btn btn-secondary" value="Submit">
+          </div>
+          <h3>{{ prediction_text }}</h3>
+         </div>
+       </div>
+     </div>
+   </div>
+   <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+   integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"
+   integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"
+   integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+  </body>
+</html>
