@@ -119,3 +119,18 @@ def load_object(file_path: Path)-> object:
 
     except Exception as e:
         logging.info(BackorderException(e, sys))
+
+def read_model_byte_code(byte_code_str: str):
+    try:
+        model_object = dill.loads(byte_code_str)
+        return model_object
+    except Exception as e:
+        logging.info(BackorderException(e, sys))
+
+def read_byte_coded_yaml_file(byte_code_yaml: str):
+    try:
+        yaml_dict = yaml.safe_load(byte_code_yaml)
+        return yaml_dict
+    
+    except Exception as e:
+        logging.info(BackorderException(e, sys))
