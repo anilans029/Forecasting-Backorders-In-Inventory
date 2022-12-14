@@ -40,28 +40,6 @@ def predict():
         stop_auto_buy=request.form['stop_auto_buy']
         rev_stop=request.form['rev_stop']
 
-        print(  national_inv,
-                lead_time,
-                in_transit_qty,
-                forecast_3_month,
-                forecast_6_month,
-                forecast_9_month,
-                sales_1_month,
-                sales_3_month,
-                sales_6_month,
-                sales_9_month,
-                min_bank,
-                potential_issue,
-                pieces_past_due,
-                perf_6_month_avg,
-                perf_12_month_avg,
-                local_bo_qty,
-                deck_risk,
-                oe_constraint,
-                ppap_risk,
-                stop_auto_buy,
-                rev_stop
-                )
         backorder_data=  BackorderData(national_inv= national_inv,
                                     lead_time=lead_time,
                                     in_transit_qty=in_transit_qty,
