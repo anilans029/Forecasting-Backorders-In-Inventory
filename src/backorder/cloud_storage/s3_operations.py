@@ -104,7 +104,11 @@ class S3Operations:
         try:
             objects= []
             if self.is_bucket_available_in_s3(bucket_name=bucket_name):
-                response = self.s3_client.list_objects(Bucket = bucket_name, Prefix= prefix)
+                if prefix is None:
+                    response = self.s3_client.list_objects(Bucket = bucket_name)
+                else:
+                    response = self.s3_client.list_objects(Bucket = bucket_name, Prefix= prefix)
+
                 if response.get("Contents")!= None:
                     for content in response.get('Contents'):
                         objects.append(content.get("Key"))
