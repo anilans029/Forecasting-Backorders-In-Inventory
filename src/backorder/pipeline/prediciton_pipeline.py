@@ -7,6 +7,7 @@ from backorder.constants.training_pipeline_config.schema_file_constants import *
 from backorder.utils import read_model_byte_code,read_byte_coded_yaml_file,read_yaml
 import pandas as pd
 from backorder.ml.model.esitmator import TargetValueMapping
+import json
 from datetime import datetime
 
 class PredictionPipeline:
@@ -112,6 +113,7 @@ class PredictionPipeline:
                 return yaml_dict[RECENTLY_PREDICTED_BATCH_TIMESTAMP_key]
             else:
                 logging.info(f"meta_info_not available in the prediction s3 bucket")
+                return None
         except Exception as e:
             logging.info(BackorderException(e,sys))
             raise BackorderException(e, sys) 
@@ -130,14 +132,18 @@ class PredictionPipeline:
     
     def validate_data(self, dataframe: pd.DataFrame):
         try:
-            if len(list(dataframe.columns)) == (self.schema_of_data[SCHEMA_FILE_TOTAL_NO_COLUMNS])-1:
+            if len(list(dataframe.columns)) == (self.schema_of_data[SCHEMA_FILE_TOTAL_NO_COLUMNS]):
                 logging.info(f"total no.of columns are same as schema file")
                 all_columns  =list(dataframe.columns)
                 schema_all_cols = self.schema_of_data[SCHEMA_FILE_ALL_COLUMNS]
                 schema_all_cols.remove("went_on_backorder")
                 for col in schema_all_cols:
                     if col not in all_columns:
-                        raise Exception(f"few columns are not present in the batch file as per schema")
+                        logging.info(f"few columns are not present in the batch file as per schema")
+                        return False
+                unwanted_cols = self.schema_of_data[SCHEMA_FILE_UNWANTED_COLUMNS]
+                logging.info(f"unwanted_cols: {unwanted_cols}")
+                dataframe.drop(columns=unwanted_cols, inplace=True)
                 return True     
             else:
                 logging.info('total no.of columns are not same as schema file')
@@ -162,16 +168,24 @@ class PredictionPipeline:
                 logging.info("getting all the timestamps list in the prediction_batches folder")
                 timestamps_list= self.get_all_timestamps_from_prediction_batch_files()
                 
-                logging.info(f"checking if recent_predicted_timestamp is greater or lesser than the recent_timestamp in the timestamps_list ")
-                datetimes_list = [datetime.strptime(timestamp,"%d%m%y%H%M%S") for timestamp in timestamps_list]
-                datetimes_list.sort()
-                diff =   datetimes_list[0] - recent_predicted_timestamp
-                
-                if diff.days> 0:
-                    logging.info(f"new_prediction batches are availabel.so, getting all the timestamps after the recent_predicted_timestamp")
-                    new_timestamps = [datetime.strftime(date,"%d%m%y%H%M%S") for date in datetimes_list if recent_predicted_timestamp< date]
+                if recent_predicted_timestamp!= None:
+                    logging.info(f"checking if recent_predicted_timestamp is greater or lesser than the recent_timestamp in the timestamps_list ")
+                    datetimes_list = [datetime.strptime(timestamp,"%d%m%y%H%M%S") for timestamp in timestamps_list]
+                    datetimes_list.sort(reverse=True)
+                    diff =   datetimes_list[0] - recent_predicted_timestamp
+                else:
+                    datetimes_list = [datetime.strptime(timestamp,"%d%m%y%H%M%S") for timestamp in timestamps_list]
+                    datetimes_list.sort(reverse=True)
+                if diff.days> 0 or recent_predicted_timestamp is None:
+                    logging.info(f"new_prediction batches are availabel. so, getting all the timestamps after the recent_predicted_timestamp")
+                    if recent_predicted_timestamp!= None:
+                        new_timestamps = [datetime.strftime(date,"%d%m%y%H%M%S") for date in datetimes_list if recent_predicted_timestamp< date]
+                    else:
+                        new_timestamps = [datetime.strftime(date,"%d%m%y%H%M%S") for date in datetimes_list]
                     logging.info(f"new timestamps of prediction_batches: {new_timestamps}")
+
                     invalid_batches= []
+                    predicted_batch_timestamps = []
                     for timestamp in new_timestamps:
                         new_batch_file_key = f"{self.prediction_batch_files_dir}/{timestamp}/{BACKORDERS_DATA_FILE_NAME}"
                         bucket_name = self.prediction_bucket_name 
@@ -187,13 +201,25 @@ class PredictionPipeline:
                             pred_df = pd.DataFrame(pred_arr,columns=["went_on_backorder"])
                             pred_df["went_on_backorder"] =pred_df["went_on_backorder"].replace(self.target_value_mapping.reverse_mapping())
                             df["went_on_backorder"] = pred_df["went_on_backorder"]
-                            predicted_batch_file_key = f"{PREDICTION_OUTCOME_DIR_NAME}/{BACKORDERS_DATA_FILE_NAME}"
+                            predicted_batch_file_key = f"{PREDICTION_OUTCOME_DIR_NAME}/{timestamp}/{BACKORDERS_DATA_FILE_NAME}"
                             self.s3_operations.save_dataframe_as_csv_s3(bucket_name= bucket_name,
                                                                         key= predicted_batch_file_key,
                                                                         dataframe= df)
                             logging.info(f"saved the predicted batch file to s3 at {predicted_batch_file_key}")
+                            predicted_batch_timestamps.append(timestamp)
                         else:
                             invalid_batches.append(f"{new_batch_file_key}")
+                    if len(predicted_batch_timestamps)>0:
+                        logging.info(f"updating the recently predicted batch timestamp")
+                        predicted_batch_timestamps.sort(reverse=True)
+                        new_recently_predicted_batch_timestamp = predicted_batch_timestamps[0]
+                        meta_data_dict = {"recently_predicted_batch_timestamp":new_recently_predicted_batch_timestamp}
+                        meta_data = json.dumps(meta_data_dict, indent=2).encode('utf-8')
+                        print(meta_data)
+                        self.s3_operations.save_object_to_s3(object_body=meta_data, 
+                                                            bucket=self.prediction_bucket_name,
+                                                            key=self.meta_data_file_key)
+
                     if len(invalid_batches)>0:
                         logging.info(f"invlaid_batch_Files_found:\n {invalid_batches}")
                 else:

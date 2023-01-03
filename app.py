@@ -21,18 +21,12 @@ def predict():
         national_inv= float(request.form['national_inv'])
         lead_time=float(request.form['lead_time'])
         in_transit_qty= float(request.form['in_transit_qty'])
-        forecast_3_month= float(request.form['forecast_3_month'])
         forecast_6_month= float(request.form['forecast_6_month'])
-        forecast_9_month= float(request.form['forecast_9_month'])
-        sales_1_month = float(request.form['sales_1_month'])
-        sales_3_month = float(request.form['sales_3_month'])
         sales_6_month = float(request.form['sales_6_month'])
-        sales_9_month = float(request.form['sales_9_month'])
         min_bank= float(request.form['min_bank'])
         potential_issue= request.form['potential_issue']
         pieces_past_due= float(request.form['pieces_past_due'])
         perf_6_month_avg= float(request.form['perf_6_month_avg'])
-        perf_12_month_avg= float(request.form['perf_12_month_avg'])
         local_bo_qty=float(request.form['local_bo_qty'])
         deck_risk=request.form['deck_risk']
         oe_constraint=request.form['oe_constraint']
@@ -43,18 +37,12 @@ def predict():
         backorder_data=  BackorderData(national_inv= national_inv,
                                     lead_time=lead_time,
                                     in_transit_qty=in_transit_qty,
-                                    forecast_3_month=forecast_3_month,
                                     forecast_6_month=forecast_6_month,
-                                    forecast_9_month=forecast_9_month,
-                                    sales_1_month=sales_1_month,
-                                    sales_3_month=sales_3_month,
                                     sales_6_month=sales_6_month,
-                                    sales_9_month=sales_9_month,
                                     min_bank=min_bank,
                                     potential_issue=potential_issue,
                                     pieces_past_due=pieces_past_due,
                                     perf_6_month_avg=perf_6_month_avg,
-                                    perf_12_month_avg=perf_12_month_avg,
                                     local_bo_qty=local_bo_qty,
                                     deck_risk=deck_risk,
                                     oe_constraint=oe_constraint,
@@ -70,4 +58,4 @@ def predict():
 
     # return render_template("home1.html")
 if __name__ == "__main__":
-    app.run(debug=True, port= 9000, host="0.0.0.0")
+    app.run(debug=True, port= 8000)
