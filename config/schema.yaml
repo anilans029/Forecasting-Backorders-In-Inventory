@@ -53,3 +53,11 @@ Categorical_features_datatypes:
   went_on_backorder: object
 
 Target_column_Name: went_on_backorder
+
+Unwanted_columns:
+  - 'forecast_3_month'
+  - 'forecast_9_month'
+  - 'sales_1_month'
+  - 'sales_3_month'
+  - 'sales_9_month'
+  - 'perf_12_month_avg'

@@ -133,6 +133,9 @@ class BackoderModel:
             logging.info(BackorderException(e,sys))
             BackorderException(e,sys)
 
+    def predict_proba(self,x):
+        prediction = self.model.predict_proba(x)
+        return prediction
     def __repr__(self):
         return f"{type(self.model).__name__}()"
 

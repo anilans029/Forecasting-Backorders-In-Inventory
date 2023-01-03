@@ -1,0 +1,14 @@
+DATA_SOURCE_BUCKET_NAME ="backorders-data-soruce" 
+ARTIFACTS_BUCKET_NAME= "backorders-artifacts"
+MODEL_REGISTRY_BUCKET_NAME = "backorders-model-registry"
+MODEL_REGISTRY_LATEST_MODEL_KEY = "latest/model.pkl"
+MODEL_REGISTRY_PREVIOUS_MODEL_KEY = "previous/model.pkl"
+MODEL_REGISTRY_LATEST_MODEL_FOLDER_NAME = 'latest/'
+MODEL_REGISTRY_PREVIOUS_MODEL_DIR_NAME = 'previous/'
+MODEL_NAME = "model.pkl"
+PREDICTION_BUCKET_NAME= "backorders-prediction-bucket"
+PREDICTION_BATCHES_DIR_NAME = "prediction_batches"
+PREDICTION_OUTCOME_DIR_NAME = "prediction_outcome"
+PREDICTION_METADATA_YAML_key = "prediction_meta_data.yaml"
+RECENTLY_PREDICTED_BATCH_TIMESTAMP_key = 'recently_predicted_batch_timestamp'
+BACKORDERS_DATA_FILE_NAME = "backorders_data.csv"

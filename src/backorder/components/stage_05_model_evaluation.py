@@ -10,7 +10,7 @@ from backorder.cloud_storage.s3_operations import S3Operations
 from backorder.utils import load_object, create_directories, load_numpy_array_data
 import shutil
 from backorder.ml.metric import EvaluateClassificationModel
-
+from backorder.data_access import MongodbOperations
 
 class ModelEvaluation:
     def __init__(self,
@@ -22,6 +22,7 @@ class ModelEvaluation:
             self.model_trainer_artifact = model_trainer_artifact
             self.data_transformation_artifact = data_transformation_artifact
             self.s3_operations = S3Operations()
+            self.mongo_operations = MongodbOperations()
         
         except Exception as e:
             logging.info(BackorderException(e,sys))
@@ -78,42 +79,50 @@ class ModelEvaluation:
                                                                                 test_x= test_x,
                                                                                 test_y= test_y
                                                                                 )
-
+                    logging.info(f"metrics of the trained model:- ")
                     trained_model_metrics = evaluatate_classification_model.evaluate_and_get_classification_metric(
                                                                                         model=trained_best_model_obj
                                                                                         )
-                    trained_model_accuracy = trained_model_metrics.model_accuracy
+                    trained_model_pr_auc = trained_model_metrics.pr_auc_test
+                    trained_model_roc_auc = trained_model_metrics.test_roc_auc
+
+
+                    logging.info(f"metrics of the latest model in model registry :- ")
                     best_model_metrics = evaluatate_classification_model.evaluate_and_get_classification_metric(
                                                                                             model = best_model_obj
                                                                                         )
-                    best_model_accuracy = best_model_metrics.model_accuracy
-                    diff_accuracy = abs(trained_model_accuracy - best_model_accuracy)
-                    logging.info(f"the difference betweent the trained and best model accuracies is {diff_accuracy}")
+                    best_model_pr_auc= best_model_metrics.pr_auc_test
+                    best_model_roc_auc = best_model_metrics.test_roc_auc
+                    diff_pr_auc = abs(trained_model_pr_auc - best_model_pr_auc)
+                    logging.info(f"the difference betweent the trained and best model pr_auc is {diff_pr_auc}")
                     
-                    
-                    if (trained_model_accuracy> best_model_accuracy) and (diff_accuracy > threshold_accuracy):
-                        logging.info(f"trained model accuracy is more than the best model accuracy. so accepting the trained model")
+                    if (trained_model_pr_auc> best_model_pr_auc) and (diff_pr_auc > threshold_accuracy) and (trained_model_roc_auc>best_model_roc_auc):
+                        logging.info(f"trained model is performing better than the best model in model registry with pr_auc={trained_model_pr_auc}. so accepting the trained model")
                         create_directories([os.path.dirname(accepted_model_file_path)])
                         shutil.copy(trained_model_file_path,accepted_model_file_path)
 
-                        model_evaluation_artifact = ModelEvaluationArtifact(is_model_accepted= True,
-                                                                            changed_accuracy= diff_accuracy,
+                        model_evaluation_artifact = ModelEvaluationArtifact(training_phase= "Model_Evaluation",
+                                                                            is_model_accepted= True,
+                                                                            changed_pr_auc= diff_pr_auc,
                                                                             best_model_metric_artifact= trained_model_metrics,
                                                                             accepted_model_path = accepted_model_file_path,
                                                                             best_model_path= best_model_artifact_file_path,
                                                                             )
                         logging.info(f"model_evaluation_artifact : {model_evaluation_artifact}")
-                        return model_evaluation_artifact
+                        
+                        
                     else:
                         logging.info(f"trained model accuracy is less than the best model accuracy. so rejecting the trained model")
-                        model_evaluation_artifact = ModelEvaluationArtifact(is_model_accepted= False,
-                                                                            changed_accuracy= None,
+                        model_evaluation_artifact = ModelEvaluationArtifact(training_phase= "Model_Evaluation",
+                                                                            is_model_accepted= False,
+                                                                            changed_pr_auc= None,
                                                                             best_model_metric_artifact= best_model_metrics,
                                                                             accepted_model_path = None,
                                                                             best_model_path= best_model_artifact_file_path,
                                                                             )
                         logging.info(f"model_evaluation_artifact : {model_evaluation_artifact}")
-                        return model_evaluation_artifact
+                        
+                        
                 else:
 
                     logging.info(f"Latest model is not available in the model registry. So, accepting the trained model")
@@ -126,19 +135,36 @@ class ModelEvaluation:
                     trained_model_metrics = evaluatate_classification_model.evaluate_and_get_classification_metric(
                                                                                         model=trained_best_model_obj
                                                                                         )
-                    trained_model_accuracy = trained_model_metrics.model_accuracy
+                    trained_model_pr_auc = trained_model_metrics.pr_auc_test
+                    trained_model_roc_auc = trained_model_metrics.test_roc_auc
+
                     logging.info(f"saving the accepted model obj at {accepted_model_file_path} ")
                     create_directories([os.path.dirname(accepted_model_file_path)])
                     shutil.copy(trained_model_file_path,accepted_model_file_path)
-                    model_evaluation_artifact = ModelEvaluationArtifact(is_model_accepted= True,
-                                                                        changed_accuracy= None,
+                    model_evaluation_artifact = ModelEvaluationArtifact(training_phase= "Model_Evaluation",
+                                                                        is_model_accepted= True,
+                                                                        changed_pr_auc= None,
                                                                         best_model_metric_artifact= trained_model_metrics,
                                                                         accepted_model_path = accepted_model_file_path,
                                                                         best_model_path= None,
                                                                         )
                     logging.info(f"model_evaluation_artifact : {model_evaluation_artifact}")
-                    logging.info(f"{'*'*10} Model Evaluation Phase completed {'*'*10}\n")
-                    return model_evaluation_artifact
+                    
+
+                model_evaluation_artifact_dict = model_evaluation_artifact.__dict__
+                model_evaluation_artifact_dict["best_model_metric_artifact"] = model_evaluation_artifact_dict["best_model_metric_artifact"].__dict__
+                model_evaluation_artifact_dict["accepted_model_path"] = str(model_evaluation_artifact_dict['accepted_model_path'])
+                model_evaluation_artifact_dict["best_model_path"] = str(model_evaluation_artifact_dict['best_model_path'])
+                ## removing the model object from artifact dictionary  saving in mongodb 
+                del model_evaluation_artifact_dict["best_model_metric_artifact"]["model_object"]
+                model_evaluation_artifact_dict["best_model_metric_artifact"]["train_f1_each_class_scores"] = list(model_evaluation_artifact_dict["best_model_metric_artifact"]["train_f1_each_class_scores"])
+                model_evaluation_artifact_dict["best_model_metric_artifact"]["test_f1_each_class_scores"] = list(model_evaluation_artifact_dict["best_model_metric_artifact"]["test_f1_each_class_scores"])
+                
+                logging.info(model_evaluation_artifact_dict)
+                self.mongo_operations.save_artifact(artifact= model_evaluation_artifact_dict)
+                logging.info(f"saved the model_evaluation artifact to mongodb")
+                logging.info(f"{'*'*10} Model Evaluation Phase completed {'*'*10}\n")
+                return model_evaluation_artifact
             else:
                 raise(f"since best Model is not found in Training phase, not initiating the model Evaluation phase")
         except Exception as e:

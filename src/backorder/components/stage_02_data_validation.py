@@ -8,8 +8,10 @@ from pathlib import Path
 from backorder.constants.training_pipeline_config.schema_file_constants import *
 import pandas as pd
 from backorder.utils import read_yaml, write_yaml,create_directories
+from sklearn.model_selection import train_test_split
 import shutil
 from scipy.stats import ks_2samp
+from backorder.data_access import MongodbOperations
 
 
 class DataValidation:
@@ -22,30 +24,19 @@ class DataValidation:
             self.data_ingestion_artifact = data_ingestion_artifact
             self.data_validation_config = data_validation_config
             self.schema_of_data = read_yaml(SCHEMA_FILE_PATH)
-            
+            self.mongo_operations = MongodbOperations()
+
         except Exception as e:
             logging.info(BackorderException(e,sys))
             BackorderException(e,sys)
 
-    def is_train_test_merged_files_available(self, train_file_path, test_file_path,
-                        feature_store_merged_file_path,validation_file_path)->bool:
+    def merged_file_available(self,feature_store_merged_file_path)->bool:
         try:
-            train_file_status, test_file_status,merged_file_status = False, False,False
-            validation_file_status = False
-            if os.path.exists(train_file_path):
-                train_file_status = True
-            if os.path.exists(test_file_path):
-                test_file_status = True
+            merged_file_status = False
             if os.path.exists(feature_store_merged_file_path):
                 merged_file_status = True
-            if os.path.exists(validation_file_path):
-                validation_file_status = True
-            logging.info(f"""train_file_available_status: {train_file_status}
-                             test_file_available_status: {test_file_status}
-                             merged_file_status: {merged_file_status}
-                             validation_file_status: {validation_file_status}""")
-            is_train_test_files_available = (train_file_status and test_file_status)and (merged_file_status and validation_file_status)
-            return is_train_test_files_available
+            logging.info(f"""merged_file_status: {merged_file_status}""")
+            return merged_file_status
 
         except Exception as e:
             logging.info(BackorderException(e,sys))
@@ -143,6 +134,25 @@ class DataValidation:
             logging.info(BackorderException(e,sys))
             BackorderException(e,sys)
 
+    def split_data_to_train_test_validation_sets(self,dataframe):
+        try:
+            train_set, test_set = train_test_split(dataframe, test_size= self.data_validation_config.test_split_ratio,
+                                                    stratify= dataframe[self.schema_of_data["Target_column_Name"]])
+
+            train_set, validation_set = train_test_split(dataframe, test_size= self.data_validation_config.validation_split_ratio,
+                                                    stratify= dataframe[self.schema_of_data["Target_column_Name"]])
+
+            return train_set, validation_set, test_set
+            # create_directories([self.data_validation_config.ingested_data_dir])
+            # logging.info(f"saving the train and test files at: {self.data_validation_config.ingested_data_dir}")
+            # train_set.to_csv(self.data_validation_config.train_file_path,index=False)
+            # test_set.to_csv(self.data_validation_config.test_file_path,index=False)
+            # validation_set.to_csv(self.data_validation_config.validation_file_path,index= False)
+
+        except Exception as e:
+            logging.info(BackorderException(e, sys))
+            raise BackorderException(e,sys)
+
     def check_data_drift(self, base_df: pd.DataFrame, current_df: pd.DataFrame):
         try:
             threshold = self.data_validation_config.ks_2_samp_test_threshold
@@ -177,13 +187,10 @@ class DataValidation:
     def initiate_data_validation(self):
         try:
             logging.info(f"{'*'*10} initiating the data validation {'*'*10}\n")
-            train_file_path = self.data_ingestion_artifact.train_file_path
-            test_file_path = self.data_ingestion_artifact.test_file_path
-            validation_file_path = self.data_ingestion_artifact.validation_file_path
             feature_store_merged_file_path = self.data_ingestion_artifact.feature_file_path
 
             #checking if train, test,validation, merged_data files are available or not
-            if self.is_train_test_merged_files_available(train_file_path, test_file_path,feature_store_merged_file_path,validation_file_path):
+            if self.merged_file_available(feature_store_merged_file_path):
                 ## loading the merged_data frame
                 merged_dataframe = DataValidation.get_data(feature_store_merged_file_path)
                 
@@ -204,17 +211,21 @@ class DataValidation:
                     
                 ## checking the data drift
                 if total_validation_status:
-                    train_df = DataValidation.get_data(train_file_path)
-                    test_df = DataValidation.get_data(test_file_path)
+                    logging.info(f"dropping the unwanted features obtained after EDA")
+                    unwanted_columns = self.schema_of_data["Unwanted_columns"]
+                    merged_dataframe.drop(columns= unwanted_columns,inplace= True)
+                    train_set, validation_set, test_set = self.split_data_to_train_test_validation_sets(dataframe= merged_dataframe)
+
                     logging.info("checking the data_drift.......")
-                    status = self.check_data_drift(base_df=train_df,current_df=test_df)
+                    status = self.check_data_drift(base_df=train_set,current_df=test_set)
                     
-                    logging.info("moving the train and test dataset to valid data dir")
                     create_directories([self.data_validation_config.valid_data_dir])
-                    shutil.copy(self.data_ingestion_artifact.train_file_path, self.data_validation_config.valid_train_file_path)
-                    shutil.copy(self.data_ingestion_artifact.test_file_path, self.data_validation_config.valid_test_file_path)
-                    shutil.copy(self.data_ingestion_artifact.validation_file_path, self.data_validation_config.valid_validation_file_path)
+                    logging.info(f"saving the train, test, valid files at: {self.data_validation_config.valid_data_dir}")
+                    train_set.to_csv(self.data_validation_config.valid_train_file_path,index=False)
+                    test_set.to_csv(self.data_validation_config.valid_test_file_path,index=False)
+                    validation_set.to_csv(self.data_validation_config.valid_validation_file_path,index= False)
                     data_validation_artifact = DataValidationArtifact(
+                                                    training_phase= "Data_validation",
                                                     validation_status= total_validation_status,
                                                     valid_train_filepath= self.data_validation_config.valid_train_file_path,
                                                     valid_test_filepath=self.data_validation_config.valid_test_file_path,
@@ -223,17 +234,29 @@ class DataValidation:
                                                     Invalid_train_filepath=None,
                                                     Invalid_validation_file_path=None,
                                                     drift_report_filepath=self.data_validation_config.drift_report_file_path
-                                                    )   
+                                                    ) 
+
+                    data_validation_artifact_dict = data_validation_artifact.__dict__
+                    data_validation_artifact_dict["valid_train_filepath"] = str(data_validation_artifact_dict['valid_train_filepath'])
+                    data_validation_artifact_dict["valid_test_filepath"] = str(data_validation_artifact_dict['valid_test_filepath'])
+                    data_validation_artifact_dict["valid_validation_file_path"] = str(data_validation_artifact_dict['valid_validation_file_path'])
+                    data_validation_artifact_dict["drift_report_filepath"] = str(data_validation_artifact_dict['drift_report_filepath'])
+                 
+                    self.mongo_operations.save_artifact(artifact= data_validation_artifact_dict)
+                    logging.info(f"saved the data_validation artifact to mongodb")
+
                     logging.info(f"data_validation artifact: {data_validation_artifact}")
                     logging.info(f"{'*'*10} completed the data validation {'*'*10}\n")
                     return data_validation_artifact
                 else:
-                    logging.info("moving the train and test dataset to invalid data dir")
+                    logging.info("moving the train, test, valid dataset to invalid data dir")
                     create_directories([self.data_validation_config.invalid_data_dir])
-                    shutil.copy(self.data_ingestion_artifact.train_file_path, self.data_validation_config.invalid_train_file_path)
-                    shutil.copy(self.data_ingestion_artifact.test_file_path,self.data_validation_config.invalid_test_file_path)
-                    shutil.copy(self.data_ingestion_artifact.validation_file_path, self.data_validation_config.invalid_validation_file_path)    
+                    logging.info(f"saving the train and test files at: {self.data_validation_config.invalid_data_dir}")
+                    train_set.to_csv(self.data_validation_config.invalid_train_file_path,index=False)
+                    test_set.to_csv(self.data_validation_config.invalid_test_file_path,index=False)
+                    validation_set.to_csv(self.data_validation_config.invalid_validation_file_path,index= False)    
                     data_validation_artifact = DataValidationArtifact(
+                                                    training_phase= "Data_validation",
                                                     validation_status= total_validation_status,
                                                     valid_train_filepath= None,
                                                     valid_test_filepath=  None,
@@ -243,13 +266,21 @@ class DataValidation:
                                                     Invalid_validation_file_path=self.data_validation_config.invalid_validation_file_path,
                                                     drift_report_filepath=None
                                                     )   
+                    data_validation_artifact_dict = data_validation_artifact_dict.__dict__
+                    data_validation_artifact_dict["Invalid_test_filepath"] = str(data_validation_artifact_dict['Invalid_test_filepath'])
+                    data_validation_artifact_dict["Invalid_train_filepath"] = str(data_validation_artifact_dict['Invalid_train_filepath'])
+                    data_validation_artifact_dict["Invalid_validation_file_path"] = str(data_validation_artifact_dict['Invalid_validation_file_path'])
+                    data_validation_artifact_dict["drift_report_filepath"] = str(data_validation_artifact_dict['drift_report_filepath'])
+                    self.mongo_operations.save_artifact(artifact= data_validation_artifact_dict)
+                    logging.info(f"saved the data_validation artifact to mongodb")
+                    
                     logging.info(f"data_validation artifact: {data_validation_artifact}")
                     logging.info(f"{'*'*10} completed the data validation {'*'*10}\n")
                     return data_validation_artifact
 
                 
             else:
-                raise Exception(f"Train or test files is not available in the ingested data folder")
+                raise Exception(f"Merged data file is not available in the ingested data folder")
 
         except Exception as e:
             logging.info(BackorderException(e,sys))

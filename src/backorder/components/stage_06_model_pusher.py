@@ -7,7 +7,7 @@ import os, sys
 from backorder.cloud_storage.s3_operations import S3Operations
 from backorder.utils import load_object, create_directories
 import shutil
-
+from backorder.data_access import MongodbOperations
 
 
 class ModelPusher:
@@ -17,6 +17,7 @@ class ModelPusher:
             self.model_evaluation_artifact = model_evaluation_artifact
             self.model_pusher_config = model_pusher_config
             self.s3_operations = S3Operations()
+            self.mongo_operations = MongodbOperations()
 
         except Exception as e:
             logging.info(BackorderException(e,sys))
@@ -48,10 +49,15 @@ class ModelPusher:
                     logging.info(f"now syncing the accepted model to modelregistry's latest folder")
                     self.s3_operations.sync_folder_to_s3(folder=accepted_model_dir, aws_bucket_url=aws_latest_model_dir_url)
 
-                model_pusher_artifact = ModelPusherArtifact(is_model_pushed=True,
+                model_pusher_artifact = ModelPusherArtifact(training_phase= "Model_Pusher",
+                                                            is_model_pushed=True,
                                                             bucket_name= self.model_pusher_config.model_registry_bucket_name,
                                                             latest_model_obj_key= self.model_pusher_config.model_registry_latest_model_obj_key)
-                logging.info(f"model_pusher_artifact: {model_pusher_artifact}") 
+                logging.info(f"model_pusher_artifact: {model_pusher_artifact}")
+                
+                model_pusher_artifact_dict = model_pusher_artifact.__dict__
+                self.mongo_operations.save_artifact(artifact= model_pusher_artifact_dict)
+                logging.info(f"saved the model_pusher artifact to mongodb") 
                 return model_pusher_artifact
             else:
                 raise Exception(f"since trained model is not accepted in evaluation phase, not initiating the model phuser")

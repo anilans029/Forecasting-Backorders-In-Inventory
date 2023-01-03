@@ -1,5 +1,5 @@
 grid_search:
-  class: GridSearchCV
+  class: RandomizedSearchCV
   module: sklearn.model_selection
   params:
     cv: 3
@@ -10,13 +10,10 @@ model_selection:
     class: XGBClassifier
     module: xgboost
     params:
-      n_estimators: 200
       criterion: squared_error
     search_param_grid:
       n_estimators:
         - 100
-      max_depth:
-        - 3
 
   module_1:
     class: GradientBoostingClassifier
@@ -24,5 +21,3 @@ model_selection:
     search_param_grid:
       n_estimators:
         - 100
-      criterion:
-        - friedman_mse

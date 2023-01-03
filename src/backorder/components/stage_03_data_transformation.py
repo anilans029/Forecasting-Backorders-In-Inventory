@@ -16,9 +16,9 @@ from sklearn.impute import SimpleImputer
 from backorder.ml.model.esitmator import TargetValueMapping,FeatureScaler,NullImputer,DataPreprocessor
 from imblearn.over_sampling import SMOTENC
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import OneHotEncoder
+from sklearn.preprocessing import OneHotEncoder, RobustScaler
 from backorder.utils import save_numpy_array_data, save_object
-
+from backorder.data_access import MongodbOperations
 
 
 class DataTransformation:
@@ -30,6 +30,7 @@ class DataTransformation:
             self.data_validation_artifact = data_validation_artifact
             self.data_transformation_config = data_transformation_config
             self.schema_of_data = read_yaml(SCHEMA_FILE_PATH)
+            self.mongo_operations = MongodbOperations()
         except Exception as e:
             logging.info(BackorderException(e,sys))
             raise BackorderException(e, sys)
@@ -74,10 +75,26 @@ class DataTransformation:
 
     def get_preprocessor(self,num_features,cat_features):
         try:
-            preprocessor = ColumnTransformer([
-                ("numerical_transformer",FeatureScaler(),num_features),
-                ("categorical_encoder",OneHotEncoder(handle_unknown='ignore',drop='first'),cat_features)
-            ],remainder='passthrough')
+            numeric_transformer = Pipeline(steps = [
+                                                    ("missing_value_imputer", SimpleImputer(strategy="median")),
+                                                    ("feature_scaling", RobustScaler())
+                                                    ])
+
+            categorical_transformer = Pipeline(steps= [
+                                                    ("categorical_encoding",OneHotEncoder(handle_unknown="ignore", drop="first"))
+                                                    ])
+
+
+            preprocessor = ColumnTransformer(transformers= [
+                                ("cat_transformer", categorical_transformer, cat_features),
+                                ("num_transformer", numeric_transformer,num_features),
+            ],remainder='passthrough'
+            )
+            
+            # preprocessor = ColumnTransformer([
+            #     ("numerical_transformer",FeatureScaler(),num_features),
+            #     ("categorical_encoder",OneHotEncoder(handle_unknown='ignore',drop='first'),cat_features)
+            # ],remainder='passthrough')
             return preprocessor
 
         except Exception as e:
@@ -118,29 +135,30 @@ class DataTransformation:
                 target_feature = self.schema_of_data[SCHEMA_FILE_TARGET_COLUMN_NAME]
                 cat_features.remove(target_feature)
             
-                logging.info(f"imputing the null values for the training set")
-                nan_imputer = NullImputer(num_features_list=num_features)
-                transformed_train_df = nan_imputer.fit_transform(independent_train_df)
+                #### Commented the preprocessor steps after getting better results in latest analysis
+                # logging.info(f"imputing the null values for the training set")
+                # nan_imputer = NullImputer(num_features_list=num_features)
+                # transformed_train_df = nan_imputer.fit_transform(independent_train_df)
 
-                logging.info(f"imputing the null values for the testing set")
-                transformed_test_df = nan_imputer.transform(independent_test_df)
+                # logging.info(f"imputing the null values for the testing set")
+                # transformed_test_df = nan_imputer.transform(independent_test_df)
 
-                logging.info(f"imputing the null values for the validation set")
-                transformed_validation_df = nan_imputer.transform(independent_valid_df)
+                # logging.info(f"imputing the null values for the validation set")
+                # transformed_validation_df = nan_imputer.transform(independent_valid_df)
 
-                logging.info(f"handling the imbalance data in the train dataset....")
-                cat_features_index= [independent_train_df.columns.get_loc(col) for col in independent_train_df.columns if independent_train_df[col].dtype=="O"]
-                smotenc = SMOTENC(categorical_features=cat_features_index)
-                train_independent_res,train_target_res =  smotenc.fit_resample(X= transformed_train_df, y= target_feature_train_df)
+                # logging.info(f"handling the imbalance data in the train dataset....")
+                # cat_features_index= [independent_train_df.columns.get_loc(col) for col in independent_train_df.columns if independent_train_df[col].dtype=="O"]
+                # smotenc = SMOTENC(categorical_features=cat_features_index)
+                # train_independent_res,train_target_res =  smotenc.fit_resample(X= transformed_train_df, y= target_feature_train_df)
                 
                 logging.info("getting the preprocessor and performing the transformations")
                 preprocessor = self.get_preprocessor(num_features,cat_features)
-                transf_train_feature_arr = preprocessor.fit_transform(train_independent_res)
-                transf_test_feature_arr = preprocessor.transform(transformed_test_df)
-                transf_valid_feature_arr = preprocessor.transform(transformed_validation_df)
+                transf_train_feature_arr = preprocessor.fit_transform(independent_train_df)
+                transf_test_feature_arr = preprocessor.transform(independent_test_df)
+                transf_valid_feature_arr = preprocessor.transform(independent_valid_df)
 
                 logging.info("combining both the input and target features into single array for both train and test")
-                train_arr = np.c_[transf_train_feature_arr, np.array(train_target_res)]
+                train_arr = np.c_[transf_train_feature_arr, np.array(target_feature_train_df)]
                 test_arr = np.c_[transf_test_feature_arr, np.array(target_feature_test_df)]
                 valid_arr = np.c_[transf_valid_feature_arr, np.array(target_feature_valid_df)]
 
@@ -152,18 +170,27 @@ class DataTransformation:
                 save_numpy_array_data(transformed_test_file_path, test_arr)
                 save_numpy_array_data(transformed_valid_file_path, valid_arr)
 
-                ### combining both the imputer and preprocessofr then saving the preprocessed obj 
-                data_preprocessor_obj = DataPreprocessor(imputer=nan_imputer, preprocessor= preprocessor, num_features_list= num_features)
-                logging.info(f"combining both the imputer and preprocessofr then saving the preprocessed obj ")
-                save_object(file_path=preprocesed_obj_file_path, obj=data_preprocessor_obj)
+                logging.info(f"saving the preprocessed obj at {preprocesed_obj_file_path} ")
+                save_object(file_path=preprocesed_obj_file_path, obj=preprocessor)
 
-                data_transformation_artifact = DataTransformationArtifact(is_Transformed = True ,
+                data_transformation_artifact = DataTransformationArtifact(
+                                        training_phase= "Data_Transformation",
+                                        is_Transformed = True ,
                                         transformed_train_file_path= transformed_train_file_path ,
                                         transformed_test_file_path= transformed_test_file_path,
                                         transformed_obj_file_path= preprocesed_obj_file_path,
                                         transformed_valid_file_path=transformed_valid_file_path,
                                         message= "Data Transformation completed succesfully")
+                
                 logging.info(f"data_Transformation artifact: {data_transformation_artifact}")
+                data_transformation_artifact_dict = data_transformation_artifact.__dict__
+                data_transformation_artifact_dict["transformed_train_file_path"] = str(data_transformation_artifact_dict['transformed_train_file_path'])
+                data_transformation_artifact_dict["transformed_test_file_path"] = str(data_transformation_artifact_dict['transformed_test_file_path'])
+                data_transformation_artifact_dict["transformed_obj_file_path"] = str(data_transformation_artifact_dict['transformed_obj_file_path'])
+                data_transformation_artifact_dict["transformed_valid_file_path"] = str(data_transformation_artifact_dict['transformed_valid_file_path'])
+                self.mongo_operations.save_artifact(artifact= data_transformation_artifact_dict)
+                logging.info(f"saved the data_transformation artifact to mongodb")
+
                 logging.info(f"{'*'*10} completed the data Transformation {'*'*10}\n")
                 return data_transformation_artifact
             else:
