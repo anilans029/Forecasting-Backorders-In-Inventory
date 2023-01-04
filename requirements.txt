@@ -11,3 +11,6 @@ dataclasses
 PyYAML
 dill==0.3.6
 imblearn
+apache-airflow
+pymongo[src]
+prettytable
