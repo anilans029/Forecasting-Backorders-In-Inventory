@@ -60,7 +60,7 @@ class ModelPusher:
                 logging.info(f"saved the model_pusher artifact to mongodb") 
                 return model_pusher_artifact
             else:
-                raise Exception(f"since trained model is not accepted in evaluation phase, not initiating the model phuser")
+                logging.info(f"since trained model is not accepted in evaluation phase, now not initiating the model phuser to push the trained model into model registry")
         except Exception as e:
             logging.info(BackorderException(e,sys))
             raise BackorderException(e,sys)
