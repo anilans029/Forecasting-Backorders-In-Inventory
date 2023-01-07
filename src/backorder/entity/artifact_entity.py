@@ -9,6 +9,7 @@ class DataIngestionArtifact:
     feature_file_path: Path
     good_data_files: dict
     bad_data_files: dict
+    new_batches_timestamps: list
 @dataclass(frozen=True)
 class DataValidationArtifact:
 

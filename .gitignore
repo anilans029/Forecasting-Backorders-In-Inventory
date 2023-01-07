@@ -135,7 +135,6 @@ dmypy.json
 # development phase trails
 notebook/Forecasting_backorders.ipynb
 sample_dataset/backorders_data_sample.csv
-demo.py
 sample_models_dir/
 sample_dataset/
 data_source/
@@ -143,4 +142,10 @@ notebook/Forecasting_backorders (2).ipynb
 backorders_data.zip
 backorders_data.csv
 artifact/
-demo_main.py
+notebook/backorder_dask.ipynb
+notebook/dask-worker-space/global.lock
+notebook/dask-worker-space/purge.lock
+notebook/Untitled.ipynb
+notebook/mongoDB_ingestion.ipynb
+notebook/selected_features_dataset.csv
+airflow/logs/scheduler/latest

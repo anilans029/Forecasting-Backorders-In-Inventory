@@ -6,4 +6,4 @@ from backorder.constants.training_pipeline_config.model_evaluation_constants imp
 from datetime import datetime
 ### common constants for all the components in training pipeline
 ARTIFACT_DIR = "artifact"
-TIMESTAMP = datetime.now().strftime("%d_%m_%Y_%H_%M_%S")
+TIMESTAMP = datetime.now().strftime("%d_%m_%Y__%H_%M_%S")

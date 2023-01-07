@@ -11,9 +11,9 @@ from pathlib import Path
 
 class TrainingConfigurationManager:
 
-    def __init__(self):
+    def __init__(self, timestamp = None ):
         try:
-            self.timestamp = TIMESTAMP
+            self.timestamp = timestamp if timestamp != None else TIMESTAMP
             self.artifact_dir = Path(os.path.join(ARTIFACT_DIR, self.timestamp))
         except Exception as e:
             logging.info(BackorderException(e,sys))

@@ -178,6 +178,17 @@ class S3Operations:
             raise BackorderException(e, sys)
 
     def save_object_to_s3(self,object_body, bucket, key):
+        
+        try:
+
+            self.s3_client.put_object(Body=object_body, Bucket=bucket, Key=key)
+
+        except Exception as e:
+            logging.info(BackorderException(e,sys))
+            raise BackorderException(e, sys)
+
+
+    def save_artifacts_to_s3(bucket_name, key):
         try:
 
             self.s3_client.put_object(Body=object_body, Bucket=bucket, Key=key)

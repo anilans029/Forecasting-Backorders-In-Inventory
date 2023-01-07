@@ -4,7 +4,6 @@ numpy
 matplotlib
 seaborn
 xgboost
-catboost
 from-root
 boto3
 dataclasses
@@ -14,3 +13,7 @@ imblearn
 apache-airflow
 pymongo[src]
 prettytable
+Flask
+Flask-Cors
+
+-e .

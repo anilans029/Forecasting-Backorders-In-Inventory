@@ -58,4 +58,4 @@ def predict():
 
     # return render_template("home1.html")
 if __name__ == "__main__":
-    app.run(debug=True, port= 8000)
+    app.run()
