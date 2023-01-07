@@ -183,24 +183,6 @@ class DataIngestion:
             logging.info(BackorderException(e, sys))
             raise BackorderException(e,sys)
 
-    # def split_data_to_train_test_validation_sets(self,dataframe):
-    #     try:
-    #         train_set, test_set = train_test_split(dataframe, test_size= self.data_ingestion_config.test_split_ratio,
-    #                                                 stratify= dataframe[self.schema_file["Target_column_Name"]])
-
-    #         train_set, validation_set = train_test_split(dataframe, test_size= self.data_ingestion_config.validation_split_ratio,
-    #                                                 stratify= dataframe[self.schema_file["Target_column_Name"]])
-
-    #         create_directories([self.data_ingestion_config.ingested_data_dir])
-    #         logging.info(f"saving the train and test files at: {self.data_ingestion_config.ingested_data_dir}")
-    #         train_set.to_csv(self.data_ingestion_config.train_file_path,index=False)
-    #         test_set.to_csv(self.data_ingestion_config.test_file_path,index=False)
-    #         validation_set.to_csv(self.data_ingestion_config.validation_file_path,index= False)
-
-    #     except Exception as e:
-    #         logging.info(BackorderException(e, sys))
-    #         raise BackorderException(e,sys)
-
 
 
     def initiate_data_ingestion(self)-> DataIngestionArtifact:
