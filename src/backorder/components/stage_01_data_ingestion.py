@@ -7,7 +7,7 @@ from backorder.constants.training_pipeline_config import *
 from backorder.constants.training_pipeline_config.schema_file_constants import *
 from backorder.config import TrainingConfigurationManager
 from backorder.cloud_storage.s3_operations import S3Operations
-from backorder.utils import create_directories,read_yaml, write_yaml
+from backorder.utils import create_directories,read_yaml, write_yaml, save_artifacts_to_s3_and_clear_local
 import os, sys, shutil
 from datetime import datetime
 from pathlib import Path
@@ -42,7 +42,7 @@ class DataIngestion:
             available_objects = self.s3_operations.list_all_objects_in_s3Bucket(artifacts_bucket_name)
             if available_objects!= None:
                 logging.info(f"objects are availbe in {artifacts_bucket_name} bucket. so, now getting all the timestamps")
-                timestamps= [obj.split("/")[0] for obj in available_objects if len(obj.split('/'))==2]
+                timestamps= list(set([obj.split("/")[0] for obj in available_objects if len(obj.split('/'))==4]))
                 timestamps.sort(reverse=True)
                 latest_timestamp = timestamps[0]
                 logging.info(f"retreived the latest timestamp {latest_timestamp} from the objects folders")
@@ -148,14 +148,14 @@ class DataIngestion:
                     df_new = pd.read_json(new_file)
                     if self.verify_good_or_bad_data(df_new):
                         create_directories([os.path.join(self.data_ingestion_config.good_data_dir,i)])
-                        shutil.copy(new_file, self.data_ingestion_config.good_data_dir)
+                        shutil.copy(new_file, os.path.join(self.data_ingestion_config.good_data_dir,i))
                         good_data_file.append(f"{i}/{self.data_ingestion_config.source_data_file_name}")
+                        merging_df= pd.concat([merging_df,df_new])  
                     else:
                         create_directories([os.path.join(self.data_ingestion_config.bad_data_dir,i)])
-                        shutil.copy(new_file,self.data_ingestion_config.bad_data_dir)
+                        shutil.copy(new_file,os.path.join(self.data_ingestion_config.bad_data_dir,i))
                         bad_data_file.append(f"{i}/{self.data_ingestion_config.source_data_file_name}")
 
-                    merging_df= pd.concat([merging_df,df_new])
             old_merged_filepath= self.data_ingestion_config.feature_store_merged_filePath
             if os.path.exists(old_merged_filepath):
                 old_data_df = pd.read_csv(old_merged_filepath)
@@ -201,15 +201,7 @@ class DataIngestion:
     #         logging.info(BackorderException(e, sys))
     #         raise BackorderException(e,sys)
 
-    def write_meta_data(self,newly_downloaded_batches: list):
-        try:
-            newly_downloaded_batches.sort(reverse=True)
-            recently_used_batch_date = newly_downloaded_batches[0].strftime("%d_%m_%Y__%H_%M_%S")
-            content = {"recently_used_batch_date": recently_used_batch_date}
-            write_yaml(content= content, file_path= self.data_ingestion_config.meta_data_file_path)
-        except Exception as e:
-            logging.info(BackorderException(e, sys))
-            raise BackorderException(e,sys)
+
 
     def initiate_data_ingestion(self)-> DataIngestionArtifact:
         try:
@@ -240,16 +232,12 @@ class DataIngestion:
             if len(bad_data_file)>0:
                 logging.info(f"bad_data_files found: {bad_data_file}")
 
-            # logging.info(f"loading the merged csv file and splitting the data into train and test datasets")
-            # self.split_data_to_train_test_validation_sets(dataframe= merged_df)
-
-            logging.info(f"write the meta data into yaml file")
-            self.write_meta_data(downloaded_batches)
             data_ingestion_artifact = DataIngestionArtifact(
                                                 training_phase= "Data_Ingestion",
                                                 feature_file_path= self.data_ingestion_config.feature_store_merged_filePath,
                                                 bad_data_files= bad_data_file,
-                                                good_data_files= good_data_file
+                                                good_data_files= good_data_file,
+                                                new_batches_timestamps= downloaded_batches
                                         )
             logging.info(f"Data_ingestion_artifacts: { data_ingestion_artifact }")
             data_ingestion_artifact_dict = data_ingestion_artifact.__dict__
@@ -262,5 +250,6 @@ class DataIngestion:
 
             
         except Exception as e:
+            save_artifacts_to_s3_and_clear_local()
             logging.info(BackorderException(e, sys))
             raise BackorderException(e,sys)
