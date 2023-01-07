@@ -7,6 +7,7 @@ from backorder.components import DataIngestion, DataValidation, DataTransformati
 from backorder.exception import BackorderException
 from backorder.logger import logging
 import os,sys
+from backorder.utils import save_artifacts_to_s3_and_clear_local
 
 
 class TrainingPipeline:
@@ -96,6 +97,7 @@ class TrainingPipeline:
                                                               )
             if model_eval_artifact.is_model_accepted:
                 self.start_model_pusher(model_evaluation_artifact=model_eval_artifact)
+            save_artifacts_to_s3_and_clear_local()
         except Exception as e:
             logging.info(BackorderException(e,sys))
             raise BackorderException(e, sys)

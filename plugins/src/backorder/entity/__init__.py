@@ -1,2 +1,0 @@
-from backorder.entity.config_entity import DataIngestionConfig, DataValidationConfig, DataTransformationConfig,ModelTrainerConfig, ModelEvaluationConfig, ModelPusherConfig
-from backorder.entity.artifact_entity import DataIngestionArtifact,DataTransformationArtifact,DataValidationArtifact,ModelTrainerArtiact, ModelEvaluationArtifact, ModelPusherArtifact
