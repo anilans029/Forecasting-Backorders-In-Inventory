@@ -20,7 +20,7 @@ with DAG(
     from backorder.entity.artifact_entity import DataIngestionArtifact, DataValidationArtifact, DataTransformationArtifact
     from backorder.entity.artifact_entity import ModelTrainerArtiact, ModelEvaluationArtifact, ModelPusherArtifact
     from backorder.components import DataIngestion, DataValidation, DataTransformation, ModelTrainer, ModelEvaluation,ModelPusher
-
+    from backorder.utils import save_artifacts_to_s3_and_clear_local, update_recent_batch_in_meta_data
 
     training_config=  TrainingConfigurationManager()
 
@@ -88,7 +88,7 @@ with DAG(
     def pushing_model(**kwargs):
         ti = kwargs["ti"]
         model_evalutaion_artifact = ti.xcom_pull(task_ids = "model_evaluation", key= "model_evalutaion_artifact")
-        # model_evalutaion_artifact = ModelEvaluationArtifact(model_evalutaion_artifact)
+        data_ingestion_artifact = ti.xcom_pull(task_ids = "data_ingestion", key= "data_ingestion_artifact")
 
         model_pusher_config = training_config.get_model_pusher_config()
         model_pusher = ModelPusher(model_evaluation_artifact=model_evalutaion_artifact,
@@ -97,7 +97,11 @@ with DAG(
         model_pusher_artifact =  model_pusher.initiate_model_pusher()
         ti.xcom_push("model_evalutaion_artifact",model_pusher_artifact)
 
-        
+        data_ingestion_config = training_config.get_dataingestion_config()
+        update_recent_batch_in_meta_data(metadata_file_path=data_ingestion_config.meta_data_file_path,
+                                            newly_downloaded_batches=data_ingestion_artifact.new_batches_timestamps)
+        save_artifacts_to_s3_and_clear_local()
+                
 
 
     ingesting_data = PythonOperator(
