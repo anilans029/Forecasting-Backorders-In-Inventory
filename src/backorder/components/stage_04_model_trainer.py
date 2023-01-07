@@ -7,7 +7,7 @@ import os, sys
 from pathlib import Path
 from backorder.constants.training_pipeline_config.schema_file_constants import *
 import pandas as pd
-from backorder.utils import read_yaml,create_directories
+from backorder.utils import read_yaml,create_directories, save_artifacts_to_s3_and_clear_local
 import shutil
 import pandas as pd
 import numpy as np
@@ -116,5 +116,6 @@ class ModelTrainer:
             else:
                 raise Exception(f"since Data_Transformations_status is False, not initiating the Model Training Phase")
         except Exception as e:
+            save_artifacts_to_s3_and_clear_local()
             logging.info(BackorderException(e,sys))
             raise BackorderException(e,sys)

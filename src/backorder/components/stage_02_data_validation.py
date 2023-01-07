@@ -7,7 +7,7 @@ import os, sys
 from pathlib import Path
 from backorder.constants.training_pipeline_config.schema_file_constants import *
 import pandas as pd
-from backorder.utils import read_yaml, write_yaml,create_directories
+from backorder.utils import read_yaml, write_yaml,create_directories,save_artifacts_to_s3_and_clear_local
 from sklearn.model_selection import train_test_split
 import shutil
 from scipy.stats import ks_2samp
@@ -283,5 +283,6 @@ class DataValidation:
                 raise Exception(f"Merged data file is not available in the ingested data folder")
 
         except Exception as e:
+            save_artifacts_to_s3_and_clear_local()
             logging.info(BackorderException(e,sys))
             raise BackorderException(e,sys)

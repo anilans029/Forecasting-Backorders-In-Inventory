@@ -7,7 +7,7 @@ import os, sys
 from pathlib import Path
 from backorder.constants.training_pipeline_config import *
 from backorder.cloud_storage.s3_operations import S3Operations
-from backorder.utils import load_object, create_directories, load_numpy_array_data
+from backorder.utils import load_object, create_directories, load_numpy_array_data,save_artifacts_to_s3_and_clear_local
 import shutil
 from backorder.ml.metric import EvaluateClassificationModel
 from backorder.data_access import MongodbOperations
@@ -168,5 +168,6 @@ class ModelEvaluation:
             else:
                 raise(f"since best Model is not found in Training phase, not initiating the model Evaluation phase")
         except Exception as e:
+            save_artifacts_to_s3_and_clear_local()
             logging.info(BackorderException(e,sys))
             raise BackorderException(e,sys)

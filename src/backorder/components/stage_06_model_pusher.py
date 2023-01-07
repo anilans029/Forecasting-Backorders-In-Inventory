@@ -8,6 +8,7 @@ from backorder.cloud_storage.s3_operations import S3Operations
 from backorder.utils import load_object, create_directories
 import shutil
 from backorder.data_access import MongodbOperations
+from backorder.utils import save_artifacts_to_s3_and_clear_local
 
 
 class ModelPusher:
@@ -62,5 +63,6 @@ class ModelPusher:
             else:
                 logging.info(f"since trained model is not accepted in evaluation phase, now not initiating the model phuser to push the trained model into model registry")
         except Exception as e:
+            save_artifacts_to_s3_and_clear_local()
             logging.info(BackorderException(e,sys))
             raise BackorderException(e,sys)
