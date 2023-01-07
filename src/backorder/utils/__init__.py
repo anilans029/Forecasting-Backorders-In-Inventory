@@ -7,7 +7,10 @@ from backorder.logger import logging
 import shutil
 import dill
 import numpy as np
-
+from backorder.cloud_storage.s3_operations import S3Operations
+from backorder.constants.aws_s3 import ARTIFACTS_BUCKET_NAME
+from backorder.constants.training_pipeline_config import ARTIFACT_DIR
+from datetime import datetime
 
 
 def copy_file(src_file: Path, destination: Path):
@@ -119,6 +122,8 @@ def load_object(file_path: Path)-> object:
 
     except Exception as e:
         logging.info(BackorderException(e, sys))
+        raise BackorderException(e, sys)
+
 
 def read_model_byte_code(byte_code_str: str):
     try:
@@ -126,6 +131,8 @@ def read_model_byte_code(byte_code_str: str):
         return model_object
     except Exception as e:
         logging.info(BackorderException(e, sys))
+        raise BackorderException(e, sys)
+
 
 def read_byte_coded_yaml_file(byte_code_yaml: str):
     try:
@@ -134,3 +141,25 @@ def read_byte_coded_yaml_file(byte_code_yaml: str):
     
     except Exception as e:
         logging.info(BackorderException(e, sys))
+        raise BackorderException(e, sys)
+
+def save_artifacts_to_s3_and_clear_local():
+    try:
+        s3_oper= S3Operations()
+        s3_oper.sync_folder_to_s3(folder= ARTIFACT_DIR, aws_bucket_url=f"s3://{ARTIFACTS_BUCKET_NAME}/")
+        shutil.rmtree("artifact")
+
+    except Exception as e:
+        logging.info(BackorderException(e, sys)) 
+        raise BackorderException(e, sys)
+
+def update_recent_batch_in_meta_data(newly_downloaded_batches: list, metadata_file_path):
+        
+    try:
+        newly_downloaded_batches.sort(reverse=True)
+        recently_used_batch_date = newly_downloaded_batches[0].strftime("%d_%m_%Y__%H_%M_%S")
+        content = {"recently_used_batch_date": recently_used_batch_date}
+        write_yaml(content= content, file_path= metadata_file_path )
+    except Exception as e:
+        logging.info(BackorderException(e, sys))
+        raise BackorderException(e,sys)
