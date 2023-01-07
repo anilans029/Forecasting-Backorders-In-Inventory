@@ -96,7 +96,7 @@ jobs:
        
       - name: Run Docker compose to serve users
         run: |
-         docker compose up
+         docker compose up -d
 
       - name: Clean previous images and containers
         run: |
