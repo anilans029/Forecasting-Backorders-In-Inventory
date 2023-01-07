@@ -12,7 +12,7 @@ volumes:
 services:
   application:
     build: .
-    image: ${{secrets.AWS_ECR_LOGIN_URI}}/${{ secrets.ECR_REPOSITORY_NAME }}:latest
+    image: ${secrets.AWS_ECR_LOGIN_URI}/${secrets.ECR_REPOSITORY_NAME}:latest
     container_name: backorder-forecasting
     expose:
       - 5000

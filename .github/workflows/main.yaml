@@ -65,6 +65,11 @@ jobs:
   Continuous-Deployment:
     needs: build-and-push-ecr-image
     runs-on: self-hosted
+    env:
+      MONGO_DB_URL: ${{secrets.MONGO_DB_URL}}
+      AWS_ECR_LOGIN_URI: ${{secrets.AWS_ECR_LOGIN_URI }}
+      ECR_REPOSITORY_NAME: ${{secretes.ECR_REPOSITORY_NAME}}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v3
