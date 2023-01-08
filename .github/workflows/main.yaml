@@ -90,7 +90,7 @@ jobs:
         run: |
          docker pull ${{secrets.AWS_ECR_LOGIN_URI}}/${{ secrets.ECR_REPOSITORY_NAME }}:latest
 
-      - name: Stop and remove sensor container if running
+      - name: Stop and remove any containers if running
         run: |
          docker compose down
        

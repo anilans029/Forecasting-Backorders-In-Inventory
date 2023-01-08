@@ -4,8 +4,6 @@ on:
       - main
     paths:
       - infrastructure/*
-    paths-ignore:
-      - 'README.md'
 
 name: Apply changes to infrastructure
 
