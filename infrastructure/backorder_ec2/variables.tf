@@ -31,7 +31,7 @@ variable "app_sg_group_name" {
 
 variable "app_ingress_from_port" {
   type    = list(number)
-  default = [22, 8080]
+  default = [22, 8080,5000,9090,8086,3001,9100,9080,3101,9091 ]
 }
 
 variable "app_cidr_block" {
@@ -46,7 +46,7 @@ variable "app_protocol" {
 
 variable "app_ingress_to_port" {
   type    = list(number)
-  default = [22, 8080]
+  default = [22, 8080,5000,9090,8086,3001,9100,9080,3101,9091 ]
 }
 
 variable "app_egress_from_port" {
