@@ -137,6 +137,26 @@ class DataIngestion:
             logging.info(BackorderException(e, sys))
             raise BackorderException(e,sys)
 
+    def get_preprocess_data(self, merging_df: pd.DataFrame):
+        try:
+            logging.info(f"Dropping the sku column since it is not useful for model")
+            merging_df.drop(columns=["sku"],inplace= True)
+            
+            logging.info(f"from analysis, it is found that there are few rows with all null values. so dropping them")
+            merging_df.drop(merging_df[merging_df[merging_df.columns].isna().all(1)==True].index, inplace=True)  
+            
+            logging.info(f"dropping the duplicated data")
+            merging_df.drop_duplicates(inplace=True)
+            
+            logging.info(f"as per analysis, replacing all the -99.0 values in per_x_month_avg columns to np.Nan")
+            merging_df[["perf_12_month_avg","perf_6_month_avg"]] = merging_df[["perf_12_month_avg","perf_6_month_avg"]].replace(-99.0,np.NaN)            
+            
+            return merging_df
+
+        except Exception as e:
+            logging.info(BackorderException(e, sys))
+            raise BackorderException(e,sys)
+
     def convert_json_files_to_csv(self):
         try:
             raw_data_dir = self.data_ingestion_config.feature_store_raw_data_dir
@@ -151,7 +171,9 @@ class DataIngestion:
                         shutil.copy(new_file, os.path.join(self.data_ingestion_config.good_data_dir,i))
                         good_data_file.append(f"{i}/{self.data_ingestion_config.source_data_file_name}")
                         merging_df= pd.concat([merging_df,df_new])  
+                        del [df_new]
                     else:
+                        del[df_new]
                         create_directories([os.path.join(self.data_ingestion_config.bad_data_dir,i)])
                         shutil.copy(new_file,os.path.join(self.data_ingestion_config.bad_data_dir,i))
                         bad_data_file.append(f"{i}/{self.data_ingestion_config.source_data_file_name}")
@@ -160,25 +182,24 @@ class DataIngestion:
             if os.path.exists(old_merged_filepath):
                 old_data_df = pd.read_csv(old_merged_filepath)
                 merging_df = pd.concat([merging_df,old_data_df])
-                logging.info(f"saving the merged df as csv file at: {[ self.data_ingestion_config.feature_store_merged_filePath ]}")
+                preprocessed_df = self.get_preprocess_data(merging_df=merging_df)
                 
-                logging.info(f"Dropping the sku column since it is not useful for model")
-                merging_df.drop(columns=["sku"],inplace= True)
-
-                logging.info(f"as per analysis, replacing all the -99.0 values in per_x_month_avg columns to np.Nan")
-                merging_df[["perf_12_month_avg","perf_6_month_avg"]] = merging_df[["perf_12_month_avg","perf_6_month_avg"]].replace(-99.0,np.NaN)
-                merging_df.to_csv(self.data_ingestion_config.feature_store_merged_filePath,index=False)
-                return merging_df, good_data_file, bad_data_file
-            else:
                 logging.info(f"saving the merged df as csv file at: {[ self.data_ingestion_config.feature_store_merged_filePath ]}")
                 merged_data_dir = os.path.dirname(self.data_ingestion_config.feature_store_merged_filePath)
                 create_directories([merged_data_dir])
-                logging.info(f"Dropping the sku column since it is not useful for model")
-                merging_df.drop(columns=["sku"],inplace= True)
-                logging.info(f"as per analysis, replacing all the -99.0 values in per_x_month_avg columns to np.Nan")
-                merging_df[["perf_12_month_avg","perf_6_month_avg"]] = merging_df[["perf_12_month_avg","perf_6_month_avg"]].replace(-99.0,np.NaN)
-                merging_df.to_csv(self.data_ingestion_config.feature_store_merged_filePath,index=False)
-                return merging_df, good_data_file, bad_data_file
+                preprocessed_df.to_csv(self.data_ingestion_config.feature_store_merged_filePath,index=False)
+                del [preprocessed_df]
+                return good_data_file, bad_data_file
+            else:
+                preprocessed_df = self.get_preprocess_data(merging_df=merging_df)
+                merged_data_dir = os.path.dirname(self.data_ingestion_config.feature_store_merged_filePath)
+                create_directories([merged_data_dir])
+
+                logging.info(f"saving the merged df as csv file at: {[ self.data_ingestion_config.feature_store_merged_filePath ]}")
+                preprocessed_df.to_csv(self.data_ingestion_config.feature_store_merged_filePath,index=False)
+                del [preprocessed_df]
+                return good_data_file, bad_data_file
+
         except Exception as e:
             logging.info(BackorderException(e, sys))
             raise BackorderException(e,sys)
@@ -209,7 +230,7 @@ class DataIngestion:
                 logging.info(f"succefully downloaded all the new data file.")
                 
             logging.info(f"started converting the new raw json data into csv data by merging all new files")
-            merging_df, good_data_file, bad_data_file = self.convert_json_files_to_csv()
+            good_data_file, bad_data_file = self.convert_json_files_to_csv()
             
             if len(bad_data_file)>0:
                 logging.info(f"bad_data_files found: {bad_data_file}")
