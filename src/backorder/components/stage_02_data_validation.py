@@ -274,6 +274,6 @@ class DataValidation:
                 raise Exception(f"Merged data file is not available in the ingested data folder")
 
         except Exception as e:
-            # save_artifacts_to_s3_and_clear_local()
-            # logging.info(BackorderException(e,sys))
+            save_artifacts_to_s3_and_clear_local()
+            logging.info(BackorderException(e,sys))
             raise BackorderException(e,sys)
