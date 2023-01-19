@@ -7,6 +7,17 @@ import os, sys
 from backorder.logger import logging
 import pandas as pd
 
+
+class FeatureExtractor:
+    def __init__(self):
+        pass
+
+    def extract_new_features(self,df: pd.DataFrame):
+        df["net_quantity"] = df["national_inv"] + df["in_transit_qty"]
+        df["safe_qunatitiy"] = df["net_quantity"] - df["min_bank"]
+        df["safe_qunatitiy_pos"] = df["safe_qunatitiy"].apply(lambda x: "Yes" if x>= 0 else "No")
+        return df
+
 class TargetValueMapping:
     def __init__(self):
         self.Yes: int = 1

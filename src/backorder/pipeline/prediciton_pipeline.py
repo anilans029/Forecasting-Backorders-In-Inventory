@@ -9,6 +9,7 @@ import pandas as pd
 from backorder.ml.model.esitmator import TargetValueMapping
 import json
 from datetime import datetime
+from backorder.ml.model.esitmator import FeatureExtractor
 
 class PredictionPipeline:
 
@@ -76,6 +77,11 @@ class PredictionPipeline:
             #8. for the batch-data save the outcomes as csv and upload to s3 bucket
             model_object = self.get_model_object()
             logging.info(f"got the latest model object")
+            logging.info(f"{dataframe}")
+            
+            logging.info(f"extracting the new features from the existing features")
+            feature_extractor = FeatureExtractor()
+            dataframe = feature_extractor.extract_new_features(dataframe)
 
             prediction_outcome = model_object.transform_predict(dataframe)
             logging.info(f"prediction outcome :{int(prediction_outcome)}")
@@ -135,7 +141,8 @@ class PredictionPipeline:
             if len(list(dataframe.columns)) == (self.schema_of_data[SCHEMA_FILE_TOTAL_NO_COLUMNS]):
                 logging.info(f"total no.of columns are same as schema file")
                 all_columns  =list(dataframe.columns)
-                schema_all_cols = self.schema_of_data[SCHEMA_FILE_ALL_COLUMNS]
+                schema_all_cols = self.schema_of_data[SCHEMA_FILE_ALL_COLUMNS].copy()
+                logging.info(f"{schema_all_cols}")
                 schema_all_cols.remove("went_on_backorder")
                 for col in schema_all_cols:
                     if col not in all_columns:
@@ -183,7 +190,7 @@ class PredictionPipeline:
                     else:
                         new_timestamps = [datetime.strftime(date,"%d%m%y%H%M%S") for date in datetimes_list]
                     logging.info(f"new timestamps of prediction_batches: {new_timestamps}")
-
+                    model_obj = self.get_model_object()
                     invalid_batches= []
                     predicted_batch_timestamps = []
                     for timestamp in new_timestamps:
@@ -196,7 +203,10 @@ class PredictionPipeline:
                         # logging.info(f"dropping not useful columns : [sku]")
                         # df.drop(columns=["sku"],inplace=True)
                         if self.validate_data(dataframe= df):
-                            model_obj = self.get_model_object()
+                            feature_extractor = FeatureExtractor()
+                            df = feature_extractor.extract_new_features(df)
+                            logging.info(f"extracted new features from the existing features")
+                            
                             pred_arr = model_obj.transform_predict(df)
                             pred_df = pd.DataFrame(pred_arr,columns=["went_on_backorder"])
                             pred_df["went_on_backorder"] =pred_df["went_on_backorder"].replace(self.target_value_mapping.reverse_mapping())

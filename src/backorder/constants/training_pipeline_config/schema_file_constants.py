@@ -11,3 +11,4 @@ SCHEMA_FILE_TARGET_COLUMNS_DATA_TYPE = "Target_column"
 SCHEMA_FILE_TARGET_COLUMN_NAME= "Target_column_Name"
 SCHEMA_FILE_UNWANTED_COLUMNS = "Unwanted_columns"
 SCHEMA_FILE_PATH = Path(os.path.join("config","schema.yaml"))
+SCHEMA_FILE_EXTRACTED_FEATURES= 'Extracted_features'

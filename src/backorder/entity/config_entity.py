@@ -25,10 +25,8 @@ class DataValidationConfig:
     validation_split_ratio: float
     valid_train_file_path: Path
     valid_validation_file_path: Path
-    invalid_train_file_path: Path
+    invalid_file_path: Path
     valid_test_file_path: Path
-    invalid_test_file_path: Path
-    invalid_validation_file_path: Path
     ks_2_samp_test_threshold: float
     drift_report_file_path: Path
 

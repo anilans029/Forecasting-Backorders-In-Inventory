@@ -18,9 +18,7 @@ class DataValidationArtifact:
     valid_train_filepath: Path
     valid_test_filepath: Path
     valid_validation_file_path: Path
-    Invalid_train_filepath: Path
-    Invalid_test_filepath: Path
-    Invalid_validation_file_path: Path
+    Invalid_filepath: Path
     drift_report_filepath: Path
 
 @dataclass(frozen=True)
