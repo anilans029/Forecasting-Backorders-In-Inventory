@@ -1,19 +1,20 @@
-scikit-learn
-pandas
-numpy
-matplotlib
-seaborn
-xgboost
-from-root
-boto3
-dataclasses
-PyYAML
+scikit-learn==1.0.2
+pandas==1.5.2
+numpy==1.23.5
+matplotlib==3.6.2
+matplotlib-inline==0.1.6
+seaborn==0.12.1
+xgboost==1.7.1
+from-root==1.0.2
+boto3==1.26.24
+dataclasses==0.6
+PyYAML==6.0
 dill==0.3.6
 imblearn
-apache-airflow
+apache-airflow==2.5.0
 pymongo[src]
-prettytable
-Flask
-Flask-Cors
+prettytable==3.5.0
+Flask==2.2.2
+Flask-Cors==3.0.10
 
 -e .
