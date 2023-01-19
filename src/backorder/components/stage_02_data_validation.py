@@ -230,9 +230,7 @@ class DataValidation:
                                                     valid_train_filepath= self.data_validation_config.valid_train_file_path,
                                                     valid_test_filepath=self.data_validation_config.valid_test_file_path,
                                                     valid_validation_file_path= self.data_validation_config.valid_validation_file_path,
-                                                    Invalid_test_filepath= None,
-                                                    Invalid_train_filepath=None,
-                                                    Invalid_validation_file_path=None,
+                                                    Invalid_filepath= None,
                                                     drift_report_filepath=self.data_validation_config.drift_report_file_path
                                                     ) 
 
@@ -249,27 +247,20 @@ class DataValidation:
                     logging.info(f"{'*'*10} completed the data validation {'*'*10}\n")
                     return data_validation_artifact
                 else:
-                    logging.info("moving the train, test, valid dataset to invalid data dir")
+                    logging.info("saving the data into invalid data dir")
                     create_directories([self.data_validation_config.invalid_data_dir])
-                    logging.info(f"saving the train and test files at: {self.data_validation_config.invalid_data_dir}")
-                    train_set.to_csv(self.data_validation_config.invalid_train_file_path,index=False)
-                    test_set.to_csv(self.data_validation_config.invalid_test_file_path,index=False)
-                    validation_set.to_csv(self.data_validation_config.invalid_validation_file_path,index= False)    
+                    merged_dataframe.to_csv(self.data_validation_config.invalid_file_path,index= False)    
                     data_validation_artifact = DataValidationArtifact(
                                                     training_phase= "Data_validation",
                                                     validation_status= total_validation_status,
                                                     valid_train_filepath= None,
                                                     valid_test_filepath=  None,
                                                     valid_validation_file_path= None,
-                                                    Invalid_test_filepath= self.data_validation_config.invalid_test_file_path,
-                                                    Invalid_train_filepath=self.data_validation_config.invalid_train_file_path,
-                                                    Invalid_validation_file_path=self.data_validation_config.invalid_validation_file_path,
+                                                    Invalid_filepath= self.data_validation_config.invalid_file_path,
                                                     drift_report_filepath=None
                                                     )   
-                    data_validation_artifact_dict = data_validation_artifact_dict.__dict__
-                    data_validation_artifact_dict["Invalid_test_filepath"] = str(data_validation_artifact_dict['Invalid_test_filepath'])
-                    data_validation_artifact_dict["Invalid_train_filepath"] = str(data_validation_artifact_dict['Invalid_train_filepath'])
-                    data_validation_artifact_dict["Invalid_validation_file_path"] = str(data_validation_artifact_dict['Invalid_validation_file_path'])
+                    data_validation_artifact_dict = data_validation_artifact.__dict__
+                    data_validation_artifact_dict["Invalid_filepath"] = str(data_validation_artifact_dict['Invalid_filepath'])
                     data_validation_artifact_dict["drift_report_filepath"] = str(data_validation_artifact_dict['drift_report_filepath'])
                     self.mongo_operations.save_artifact(artifact= data_validation_artifact_dict)
                     logging.info(f"saved the data_validation artifact to mongodb")
@@ -283,6 +274,6 @@ class DataValidation:
                 raise Exception(f"Merged data file is not available in the ingested data folder")
 
         except Exception as e:
-            save_artifacts_to_s3_and_clear_local()
-            logging.info(BackorderException(e,sys))
+            # save_artifacts_to_s3_and_clear_local()
+            # logging.info(BackorderException(e,sys))
             raise BackorderException(e,sys)
