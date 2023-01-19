@@ -19,6 +19,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, RobustScaler
 from backorder.utils import save_numpy_array_data, save_object
 from backorder.data_access import MongodbOperations
+from backorder.ml.model.esitmator import FeatureExtractor
 
 
 class DataTransformation:
@@ -118,6 +119,12 @@ class DataTransformation:
                 test_df = self.get_data(test_file_path)
                 valid_df = self.get_data(valid_file_path)
 
+                logging.info(f"extracting the new features from the existing features")
+                feature_extractor = FeatureExtractor()
+                train_df = feature_extractor.extract_new_features(train_df)
+                test_df = feature_extractor.extract_new_features(test_df)
+                valid_df = feature_extractor.extract_new_features(valid_df)
+
                 logging.info(f"seperating the independent and dependent features for train df")
                 independent_train_df = train_df.drop(columns=[self.schema_of_data[SCHEMA_FILE_TARGET_COLUMN_NAME]])
                 target_feature_train_df = train_df[self.schema_of_data[SCHEMA_FILE_TARGET_COLUMN_NAME]].replace(TargetValueMapping().to_dict())
@@ -197,6 +204,6 @@ class DataTransformation:
                 logging.info(f"since validation status is false, not initiating the data transformation phase ")
                 raise Exception(f"since validation status is false, not initiating the data transformation phase")
         except Exception as e:
-            save_artifacts_to_s3_and_clear_local()
-            logging.info(BackorderException(e,sys))
+            # save_artifacts_to_s3_and_clear_local()
+            # logging.info(BackorderException(e,sys))
             raise BackorderException(e,sys)
