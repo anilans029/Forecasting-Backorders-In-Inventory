@@ -149,3 +149,4 @@ notebook/Untitled.ipynb
 notebook/mongoDB_ingestion.ipynb
 notebook/selected_features_dataset.csv
 airflow/logs/scheduler/latest
+bg_image.png
