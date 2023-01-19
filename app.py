@@ -1,10 +1,12 @@
 from flask import Flask, request, render_template
-from flask_cors import cross_origin
+from flask_cors import cross_origin,CORS
 import pandas as pd
 from backorder.ml.model.esitmator import BackorderData
 from backorder.pipeline.prediciton_pipeline import PredictionPipeline
 
 app = Flask(__name__)
+cors = CORS(app)
+app.config['CORS_HEADERS'] = 'Content-Type'
 
 prediction_pipeline = PredictionPipeline()
 
@@ -58,4 +60,4 @@ def predict():
 
     # return render_template("home1.html")
 if __name__ == "__main__":
-    app.run()
+    app.run(host="0.0.0.0", port=5100)
