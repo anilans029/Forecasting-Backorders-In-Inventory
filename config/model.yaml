@@ -7,17 +7,45 @@ grid_search:
 
 model_selection:
   module_0:
+    class: RandomForestClassifier
+    module: sklearn.ensemble
+    params:
+      criterion: 'gini'
+      n_jobs: -1
+      class_weight: "balanced_subsample"
+    search_param_grid:
+      n_estimators:
+        - 35
+        - 50
+        - 100
+      max_depth: 
+        - 11
+        - 17
+        - 19
+      class_weight:
+        - {0: 0.3, 1: 0.7}
+        - "balanced"
+  
+  module_1:
     class: XGBClassifier
     module: xgboost
     params:
-      criterion: squared_error
+      nthread: -1
+      n_jobs: -1
+      scale_pos_weight: 75
+      n_estimators: 50
+      min_child_weight: 50
+      max_depth: 15
     search_param_grid:
       n_estimators:
-        - 100
+        - 40
 
-  module_1:
-    class: GradientBoostingClassifier
-    module: sklearn.ensemble
+  module_2:
+    class: BalancedBaggingClassifier
+    module: imblearn.ensemble 
+    params:
+      n_jobs: -1
+      n_estimators: 1000
     search_param_grid:
       n_estimators:
-        - 100
+        - 40
