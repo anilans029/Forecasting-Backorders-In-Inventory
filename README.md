@@ -38,6 +38,8 @@ For a reference, single instance prediction is also implemented.
 ## Deployment link
 Flask app: http://3.7.45.23:5000/
 
+project demo: https://youtu.be/UIrTIteZvwI
+
 ![](https://ml-ops.org/img/mlops-phasen.jpg)
 ## Steps to run project in local system
 1. Build docker image
