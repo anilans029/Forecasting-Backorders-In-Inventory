@@ -35,6 +35,9 @@ For a reference, single instance prediction is also implemented.
 4. Promtail
 5. Loki
 
+## Deployment link
+Flask app: http://3.7.45.23:5000/
+
 ![](https://ml-ops.org/img/mlops-phasen.jpg)
 ## Steps to run project in local system
 1. Build docker image
