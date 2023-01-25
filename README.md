@@ -35,8 +35,7 @@ For a reference, single instance prediction is also implemented.
 4. Promtail
 5. Loki
 
-## Deployment link
-Flask app: http://3.7.45.23:5000/
+
 
 project demo: https://youtu.be/UIrTIteZvwI
 
