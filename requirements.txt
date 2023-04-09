@@ -16,5 +16,5 @@ pymongo[src]
 prettytable==3.5.0
 Flask==2.2.2
 Flask-Cors==3.0.10
-
+SQLAlchemy==1.4.47
 -e .
